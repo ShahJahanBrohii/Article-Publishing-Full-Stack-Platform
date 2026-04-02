@@ -1,210 +1,284 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { fetchComments, postComment } from '../lib/api';
 import '../styles/ArticleDetail.css';
 
-const RELATED_POOL = [
-  { id: 1, topic: 'History & Culture', title: 'The Lost Libraries of the Ancient World' },
-  { id: 2, topic: 'Philosophy', title: 'What Does It Mean to Live Well?' },
-  { id: 3, topic: 'Personal Essay', title: 'Why I Still Carry a Notebook in 2025' },
-];
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function readingTime(body = '') {
+  const words = body.trim().split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.round(words / 200))} min read`;
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      year: 'numeric', month: 'long', day: 'numeric',
+    });
+  } catch { return ''; }
+}
+
+function formatCommentDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric',
+    });
+  } catch { return ''; }
+}
 
 function normalizeComment(c) {
   if (!c) return null;
   return {
-    id: String(c.id ?? `c-${Math.random()}`),
-    author: c.author || 'Reader',
-    body: c.body || c.text || '',
+    id:        String(c.id ?? c._id ?? `c-${Math.random()}`),
+    author:    c.author || 'Reader',
+    body:      c.body || c.text || '',
     createdAt: c.createdAt || c.created_at || new Date().toISOString(),
   };
 }
 
-function ArticleDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [article, setArticle] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [headings, setHeadings] = useState([]);
-  const [activeHeading, setActiveHeading] = useState(null);
-  const contentRef = useRef(null);
+// ─── Meta tags helper (updates <head> for SEO + Open Graph) ───────────────────
+function setMetaTags({ title, description, image, url }) {
+  document.title = title ? `${title} | The Wall Street Investor` : 'The Wall Street Investor';
 
-  const [comments, setComments] = useState([]);
-  const [commentText, setCommentText] = useState('');
-  const [authorName, setAuthorName] = useState('');
-  const [postPending, setPostPending] = useState(false);
+  const set = (sel, attr, val) => {
+    let el = document.querySelector(sel);
+    if (!el) {
+      el = document.createElement('meta');
+      const [, name] = sel.match(/\[(?:name|property)="([^"]+)"\]/) || [];
+      if (sel.includes('property=')) el.setAttribute('property', name);
+      else el.setAttribute('name', name);
+      document.head.appendChild(el);
+    }
+    el.setAttribute(attr, val || '');
+  };
+
+  set('meta[name="description"]',         'content', description);
+  set('meta[property="og:title"]',         'content', title);
+  set('meta[property="og:description"]',   'content', description);
+  set('meta[property="og:url"]',           'content', url);
+  set('meta[property="og:type"]',          'content', 'article');
+  if (image) set('meta[property="og:image"]', 'content', image);
+  set('meta[name="twitter:card"]',         'content', 'summary_large_image');
+  set('meta[name="twitter:title"]',        'content', title);
+  set('meta[name="twitter:description"]',  'content', description);
+  if (image) set('meta[name="twitter:image"]', 'content', image);
+}
+
+function clearMetaTags() {
+  document.title = 'The Wall Street Investor';
+}
+
+// ─── Skeleton loader ───────────────────────────────────────────────────────────
+function Skeleton({ h = 16, w = '100%', style = {} }) {
+  return (
+    <div style={{
+      height: h, width: w, borderRadius: 4, marginBottom: 10,
+      background: 'rgba(0,0,0,0.07)', ...style,
+    }} />
+  );
+}
+
+// ─── Render article body: supports ### headings + paragraphs ──────────────────
+function ArticleBody({ body, contentRef }) {
+  if (!body) return null;
+
+  return (
+    <div className="article-content" ref={contentRef}>
+      {body.split('\n\n').map((block, idx) => {
+        const h3 = block.match(/^###\s+(.+)$/);
+        const h2 = block.match(/^##\s+(.+)$/);
+        if (h3) {
+          const text = h3[1];
+          const slug = text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+          return <h3 key={idx} id={slug} className="article-heading">{text}</h3>;
+        }
+        if (h2) {
+          const text = h2[1];
+          const slug = text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+          return <h2 key={idx} id={slug} className="article-heading article-heading--h2">{text}</h2>;
+        }
+        // Bold: **text**
+        if (block.trim()) {
+          const parts = block.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
+            const bold = part.match(/^\*\*(.+)\*\*$/);
+            return bold ? <strong key={i}>{bold[1]}</strong> : part;
+          });
+          return <p key={idx}>{parts}</p>;
+        }
+        return null;
+      })}
+    </div>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
+export default function ArticleDetail() {
+  const { id }     = useParams();
+  const navigate   = useNavigate();
+
+  // Article data
+  const [article, setArticle]   = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [error,   setError]     = useState(null);
+
+  // Related articles (fetched from API)
+  const [related,        setRelated]        = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+
+  // Reading progress + sticky header
+  const [progress,     setProgress]     = useState(0);
+  const [showSticky,   setShowSticky]   = useState(false);
+  const [copyDone,     setCopyDone]     = useState(false);
+
+  // Save / bookmark
+  const [saved,        setSaved]        = useState(false);
+
+  // Table of contents
+  const [headings,       setHeadings]       = useState([]);
+  const [activeHeading,  setActiveHeading]  = useState(null);
+
+  // Comments
+  const [comments,     setComments]     = useState([]);
+  const [commentText,  setCommentText]  = useState('');
+  const [authorName,   setAuthorName]   = useState('');
+  const [postPending,  setPostPending]  = useState(false);
   const [commentError, setCommentError] = useState(null);
 
+  const contentRef   = useRef(null);
+  const articleRef   = useRef(null);
+
+  // ── Load bookmark state from localStorage ────────────────────────────────
   useEffect(() => {
-    fetchArticle(id);
+    const saved = JSON.parse(localStorage.getItem('wsi_saved_articles') || '[]');
+    setSaved(saved.some((a) => String(a.id) === String(id)));
   }, [id]);
 
+  // ── Fetch article ────────────────────────────────────────────────────────
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const raw = await fetchComments(id);
-      const list = Array.isArray(raw) ? raw.map(normalizeComment).filter(Boolean) : [];
-      if (!cancelled) setComments(list);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+    setLoading(true);
+    setError(null);
+    setArticle(null);
+    setHeadings([]);
 
-  useEffect(() => {
-    if (article && article.content) {
-      const headingRegex = /^###\s+(.+)$/gm;
-      const foundHeadings = [];
-      let match;
-
-      while ((match = headingRegex.exec(article.content)) !== null) {
-        foundHeadings.push({
-          id: match[1].toLowerCase().replace(/\s+/g, '-'),
-          text: match[1],
+    const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+    fetch(`${apiBase}/api/articles/${id}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(r.status === 404 ? 'Article not found.' : `Server error ${r.status}`);
+        return r.json();
+      })
+      .then((data) => {
+        setArticle(data);
+        // Set meta tags for SEO + social sharing
+        setMetaTags({
+          title:       data.title,
+          description: data.excerpt,
+          image:       data.image,
+          url:         window.location.href,
         });
-      }
-      setHeadings(foundHeadings);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+
+    return () => clearMetaTags();
+  }, [id]);
+
+  // ── Build table of contents from body ────────────────────────────────────
+  useEffect(() => {
+    if (!article?.body) return;
+    const found = [];
+    const re = /^#{2,3}\s+(.+)$/gm;
+    let m;
+    while ((m = re.exec(article.body)) !== null) {
+      const text = m[1];
+      const slug = text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      found.push({ id: slug, text, level: m[0].startsWith('###') ? 3 : 2 });
     }
+    setHeadings(found);
   }, [article]);
 
+  // ── Fetch related articles from API (same section or topic) ──────────────
   useEffect(() => {
-    const handleScroll = () => {
+    if (!article) return;
+    setRelatedLoading(true);
+    const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+    const q = article.section
+      ? `status=published&section=${article.section}&limit=4`
+      : `status=published&limit=4`;
+
+    fetch(`${apiBase}/api/articles?${q}`)
+      .then((r) => r.ok ? r.json() : { articles: [] })
+      .then((data) => {
+        // Exclude current article, take up to 3
+        const filtered = (data.articles || [])
+          .filter((a) => String(a._id) !== String(id))
+          .slice(0, 3);
+        setRelated(filtered);
+      })
+      .catch(() => setRelated([]))
+      .finally(() => setRelatedLoading(false));
+  }, [article, id]);
+
+  // ── Fetch comments ────────────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    fetchComments(id).then((raw) => {
+      if (cancelled) return;
+      const list = Array.isArray(raw) ? raw.map(normalizeComment).filter(Boolean) : [];
+      setComments(list);
+    });
+    return () => { cancelled = true; };
+  }, [id]);
+
+  // ── Reading progress + sticky header + active heading ────────────────────
+  useEffect(() => {
+    const onScroll = () => {
+      const el = articleRef.current;
+      if (!el) return;
+
+      // Progress bar
+      const { top, height } = el.getBoundingClientRect();
+      const visible = Math.max(0, Math.min(height, window.innerHeight - top));
+      const scrolled = Math.max(0, -top);
+      const pct = height > 0 ? Math.min(100, (scrolled / (height - window.innerHeight)) * 100) : 0;
+      setProgress(Math.max(0, pct));
+
+      // Sticky article title (shows after scrolling past ~250px)
+      setShowSticky(window.scrollY > 250);
+
+      // Active heading highlight in TOC
       if (!contentRef.current) return;
-
-      const headingElements = contentRef.current.querySelectorAll('h3');
-      let currentHeading = null;
-
-      headingElements.forEach((element) => {
-        const rect = element.getBoundingClientRect();
-        if (rect.top <= 200) {
-          currentHeading = element.getAttribute('id');
-        }
+      const hs = contentRef.current.querySelectorAll('h2[id], h3[id]');
+      let current = null;
+      hs.forEach((h) => {
+        if (h.getBoundingClientRect().top <= 160) current = h.getAttribute('id');
       });
-
-      setActiveHeading(currentHeading);
+      setActiveHeading(current);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [headings]);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-  const fetchArticle = async (articleId) => {
-    const root = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-    const url = root ? `${root}/api/articles/${articleId}` : `/api/articles/${articleId}`;
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setArticle(data);
-      } else {
-        setArticle(getMockArticle(articleId));
-      }
-    } catch (error) {
-      console.error('Error fetching article:', error);
-      setArticle(getMockArticle(articleId));
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ── Scroll to heading ─────────────────────────────────────────────────────
+  const scrollToHeading = useCallback((slug) => {
+    const el = contentRef.current?.querySelector(`#${slug}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
-  const getMockArticle = (articleId) => {
-    const mockArticles = {
-      1: {
-        id: 1,
-        topic: 'History & Culture',
-        title: 'The Lost Libraries of the Ancient World',
-        excerpt:
-          'From Alexandria to Antioch — a journey through the great repositories of human knowledge that time swallowed whole.',
-        content: `From Alexandria to Antioch — a journey through the great repositories of human knowledge that time swallowed whole.
-
-### The Library of Alexandria
-
-The Library of Alexandria stands as mythology in our collective memory, a symbol of human achievement and tragic loss. But beyond this famous repository, numerous libraries and archives throughout the ancient world served as guardians of knowledge that shaped civilizations.
-
-In this exploration, we traverse the corridors of history to discover the great centers of learning that once flourished across the Mediterranean and beyond. From the Library of Pergamon to the archives of Mesopotamia, these institutions were the Internet of their time—nodes in a vast network of knowledge exchange.
-
-### The Library of Pergamon
-
-Yet many vanished without trace, their contents consumed by fire, warfare, or the relentless march of time. What wisdom was lost? What insights might have accelerated human progress? These questions haunt us still.
-
-### Mesopotamian Archives
-
-The ancient civilizations of Mesopotamia developed extensive record-keeping systems that preserved knowledge on clay tablets. These archives contained everything from legal codes to astronomical observations, demonstrating the sophisticated nature of ancient scholarship and administration.
-
-### The Legacy Lost
-
-The loss of these great repositories represents an irreplaceable tragedy for human civilization. We can only imagine what knowledge and wisdom perished in the flames.`,
-      },
-      2: {
-        id: 2,
-        topic: 'Philosophy',
-        title: 'What Does It Mean to Live Well?',
-        excerpt:
-          'Stoics, existentialists, and the quiet wisdom of ordinary people converge in this meditation on the good life.',
-        content: `Stoics, existentialists, and the quiet wisdom of ordinary people converge in this meditation on the good life.
-
-### The Question Explored
-
-The question has echoed through millennia: What constitutes a well-lived life? Different traditions have offered different answers, yet certain threads connect them all—the search for meaning, the cultivation of virtue, and the alignment of action with principle.
-
-### Stoic Philosophy
-
-Marcus Aurelius meditated on duty; Epictetus taught acceptance of what lies beyond control. The Stoics understood that true freedom comes not from external circumstances, but from our response to them.
-
-### Existentialist Perspective
-
-Later, existentialists emphasized our freedom to create meaning. Yet perhaps the ancients were wiser than we give them credit for. A well-lived life, they seemed to suggest, is not about accumulation or achievement alone, but about becoming fully human—aware, authentic, and responsible.
-
-### Modern Applications
-
-In our contemporary world, we struggle with the same questions. How do we find meaning? How do we live authentically? The wisdom of ancient philosophy offers us guidance in navigating these timeless questions.`,
-      },
-      3: {
-        id: 3,
-        topic: 'Personal Essay',
-        title: 'Why I Still Carry a Notebook in 2025',
-        excerpt:
-          'In an age of digital everything, there is something quietly radical about writing by hand — and refusing to stop.',
-        content: `In an age of digital everything, there is something quietly radical about writing by hand — and refusing to stop.
-
-### A Leather-Bound Companion
-
-My notebook is leather-bound, weathered from years of travel. Its pages are filled with slanted handwriting, crossed-out sentences, margin notes. By modern standards, it's inefficient. No search function, no cloud backup, no way to quickly share ideas with others.
-
-### The Power of Handwriting
-
-Yet I cannot imagine abandoning it. Something happens when pen meets paper that doesn't happen when fingers meet keyboard. The mind slows. Thoughts deepen. Ideas emerge that might otherwise remain buried in the noise of digital distraction.
-
-### Resistance to Technology
-
-This is not nostalgia. It is a conscious choice to resist the tyranny of optimization, to embrace the friction that fosters depth. In a world obsessed with speed and efficiency, the act of writing by hand becomes a radical assertion of values that run counter to the prevailing tide.
-
-### The Future of Reflection
-
-As we continue to advance technologically, the simple practice of handwriting becomes increasingly counter-cultural—and increasingly necessary.`,
-      },
-    };
-    const key = Number(articleId);
-    return mockArticles[key];
-  };
-
-  const scrollToHeading = (headingId) => {
-    const element = contentRef.current?.querySelector(`#${headingId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
+  // ── Share ─────────────────────────────────────────────────────────────────
   const shareArticle = (platform) => {
-    const url = window.location.href;
-    const title = article.title;
-    const text = `${article.title} - Come Read with Junaid`;
+    const url   = window.location.href;
+    const title = article?.title ?? '';
+    const text  = `${title} — The Wall Street Investor`;
 
     switch (platform) {
       case 'twitter':
-        window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-          '_blank'
-        );
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'linkedin':
+        window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`, '_blank');
         break;
       case 'facebook':
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
@@ -213,80 +287,165 @@ As we continue to advance technologically, the simple practice of handwriting be
         window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text + '\n\n' + url)}`;
         break;
       default:
-        navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
+        navigator.clipboard.writeText(url).then(() => {
+          setCopyDone(true);
+          setTimeout(() => setCopyDone(false), 2000);
+        });
     }
   };
 
+  // ── Save / bookmark ───────────────────────────────────────────────────────
+  const toggleSave = () => {
+    const key   = 'wsi_saved_articles';
+    const store = JSON.parse(localStorage.getItem(key) || '[]');
+    const exists = store.some((a) => String(a.id) === String(id));
+
+    let next;
+    if (exists) {
+      next = store.filter((a) => String(a.id) !== String(id));
+      setSaved(false);
+    } else {
+      next = [...store, { id, title: article?.title, topic: article?.topic, savedAt: new Date().toISOString() }];
+      setSaved(true);
+    }
+    localStorage.setItem(key, JSON.stringify(next));
+  };
+
+  // ── Post comment ──────────────────────────────────────────────────────────
   const handlePostComment = async (e) => {
     e.preventDefault();
     setCommentError(null);
     const body = commentText.trim();
-    if (!body) {
-      setCommentError('Please write something before posting.');
-      return;
-    }
+    if (!body) { setCommentError('Please write something before posting.'); return; }
+
     setPostPending(true);
     const res = await postComment(id, { body, author: authorName });
     setPostPending(false);
 
     if (res.ok) {
-      setCommentError(null);
       if (res.comment) {
         const n = normalizeComment(res.comment);
         if (n) setComments((prev) => [...prev, n]);
       } else {
         const raw = await fetchComments(id);
-        const list = Array.isArray(raw) ? raw.map(normalizeComment).filter(Boolean) : [];
-        setComments(list);
+        setComments(Array.isArray(raw) ? raw.map(normalizeComment).filter(Boolean) : []);
       }
       setCommentText('');
     } else {
-      setCommentError('Could not post your comment.');
+      setCommentError('Could not post your comment. Please try again.');
     }
   };
 
-  const relatedArticles = RELATED_POOL.filter((a) => String(a.id) !== String(id)).slice(0, 2);
-
-  const formatCommentDate = (iso) => {
-    try {
-      return new Date(iso).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return '';
-    }
-  };
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render: loading
+  // ─────────────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="article-detail">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-  if (!article) {
-    return (
-      <div className="article-detail">
-        <p>Article not found</p>
+      <div className="article-detail-wrapper">
+        <article className="article-detail">
+          <div className="article-container">
+            <div className="article-header">
+              <Skeleton h={12} w="20%" />
+              <Skeleton h={40} />
+              <Skeleton h={40} w="75%" />
+              <Skeleton h={14} w="40%" style={{ marginTop: 16 }} />
+            </div>
+            <Skeleton h={14} />
+            <Skeleton h={14} />
+            <Skeleton h={14} w="90%" />
+            <Skeleton h={14} w="80%" />
+            <Skeleton h={14} />
+            <Skeleton h={14} w="95%" style={{ marginBottom: 32 }} />
+            <Skeleton h={22} w="45%" style={{ marginBottom: 20 }} />
+            <Skeleton h={14} />
+            <Skeleton h={14} w="85%" />
+            <Skeleton h={14} />
+          </div>
+        </article>
       </div>
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render: error / not found
+  // ─────────────────────────────────────────────────────────────────────────
+  if (error || !article) {
+    return (
+      <div className="article-detail-wrapper">
+        <article className="article-detail">
+          <div className="article-container">
+            <p className="article-error">
+              {error || 'Article not found.'}{' '}
+              <Link to="/">Return to home →</Link>
+            </p>
+          </div>
+        </article>
+      </div>
+    );
+  }
+
+  const bodyText    = article.body || article.content || '';
+  const calcReadTime = readingTime(bodyText);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render: article
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <>
-      <div className="article-detail-wrapper">
+      {/* ── Reading progress bar (fixed, top of viewport) ─────────────── */}
+      <div className="reading-progress-bar" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
+        <div className="progress-fill" style={{ width: `${progress}%` }} />
+      </div>
+
+      {/* ── Sticky mini-header (appears after scrolling past hero) ──────── */}
+      <div className={`article-reading-header ${showSticky ? 'compact' : ''}`} aria-hidden={!showSticky}>
+        <div className="header-content">
+          <button className="header-back-button" onClick={() => navigate(-1)} aria-label="Go back">←</button>
+          <div className="header-publication">
+            <p className={`pub-full ${showSticky ? 'fade-out' : ''}`}>The Wall Street Investor</p>
+            <p className={`pub-short ${showSticky ? 'fade-in' : ''}`}>WSI</p>
+          </div>
+          {showSticky && (
+            <span className="header-article-title">{article.title}</span>
+          )}
+          <div className="header-spacer" />
+          {/* Sticky share + save */}
+          <div className="header-actions-right">
+            <button
+              className={`sticky-save-btn ${saved ? 'sticky-save-btn--saved' : ''}`}
+              onClick={toggleSave}
+              aria-label={saved ? 'Remove from saved articles' : 'Save article'}
+              title={saved ? 'Saved' : 'Save for later'}
+            >
+              {saved ? '★' : '☆'}
+            </button>
+            <button className="sticky-share-btn" onClick={() => shareArticle('copy')} aria-label="Copy link">
+              {copyDone ? '✓ Copied' : '⎘ Share'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main layout ───────────────────────────────────────────────────── */}
+      <div className="article-detail-wrapper" ref={articleRef}>
+
+        {/* ── Left sidebar: Table of contents ───────────────────────────── */}
         {headings.length > 0 && (
-          <aside className="article-sidebar">
+          <aside className="article-sidebar" aria-label="Table of contents">
             <nav className="headings-nav">
               <p className="headings-label">On this page</p>
               <ul>
-                {headings.map((heading) => (
-                  <li key={heading.id} className={activeHeading === heading.id ? 'active' : ''}>
-                    <button type="button" onClick={() => scrollToHeading(heading.id)} className="heading-link">
-                      {heading.text}
+                {headings.map((h) => (
+                  <li
+                    key={h.id}
+                    className={`${activeHeading === h.id ? 'active' : ''} ${h.level === 3 ? 'toc-sub' : ''}`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => scrollToHeading(h.id)}
+                      className="heading-link"
+                    >
+                      {h.text}
                     </button>
                   </li>
                 ))}
@@ -295,61 +454,128 @@ As we continue to advance technologically, the simple practice of handwriting be
           </aside>
         )}
 
+        {/* ── Article main content ───────────────────────────────────────── */}
         <article className="article-detail">
-          <div className="article-container" ref={contentRef}>
-            <div className="article-header">
+          <div className="article-container">
+
+            {/* Header */}
+            <header className="article-header">
+              {/* Breadcrumb */}
+              <nav className="article-breadcrumb" aria-label="Breadcrumb">
+                <Link to="/">Home</Link>
+                {article.section && (
+                  <>
+                    <span className="breadcrumb-sep">›</span>
+                    <Link to={`/${article.section}`}>
+                      {article.section.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </Link>
+                  </>
+                )}
+                <span className="breadcrumb-sep">›</span>
+                <span>{article.topic}</span>
+              </nav>
+
               <p className="article-topic">{article.topic}</p>
               <h1 className="article-title-main">{article.title}</h1>
+
+              {article.excerpt && (
+                <p className="article-excerpt">{article.excerpt}</p>
+              )}
+
               <div className="article-meta-enhanced">
                 <span className="author-info">By {article.author || 'Editorial Staff'}</span>
-                <span className="separator">•</span>
-                <span className="publish-date">{article.publishedAt || 'March 27, 2026'}</span>
-                <span className="separator">•</span>
-                <span className="reading-time">{article.readingTime || '5 min read'}</span>
+                <span className="separator">·</span>
+                <time className="publish-date" dateTime={article.publishedAt}>
+                  {formatDate(article.publishedAt)}
+                </time>
+                <span className="separator">·</span>
+                <span className="reading-time">{calcReadTime}</span>
               </div>
-            </div>
 
-            <div className="article-content">
-              {article.content.split('\n\n').map((paragraph, idx) => {
-                const headingMatch = paragraph.match(/^###\s+(.+)$/);
-                if (headingMatch) {
-                  const headingText = headingMatch[1];
-                  const headingId = headingText.toLowerCase().replace(/\s+/g, '-');
-                  return (
-                    <h3 key={idx} id={headingId} className="article-heading">
-                      {headingText}
-                    </h3>
-                  );
-                }
-                if (paragraph.trim()) {
-                  return <p key={idx}>{paragraph}</p>;
-                }
-                return null;
-              })}
-            </div>
+              {/* Tags */}
+              {article.tags?.length > 0 && (
+                <div className="article-tags">
+                  {article.tags.map((tag) => (
+                    <Link
+                      key={tag}
+                      to={`/search?tag=${encodeURIComponent(tag)}`}
+                      className="article-tag"
+                    >
+                      {tag}
+                    </Link>
+                  ))}
+                </div>
+              )}
 
+              {/* Hero image */}
+              {article.image && (
+                <figure className="article-hero-figure">
+                  <img
+                    src={article.image}
+                    alt={article.title}
+                    className="article-hero-img"
+                    loading="lazy"
+                  />
+                </figure>
+              )}
+            </header>
+
+            {/* Body */}
+            <ArticleBody body={bodyText} contentRef={contentRef} />
+
+            {/* Tags (bottom of article — second discovery point) */}
+            {article.tags?.length > 0 && (
+              <div className="article-tags article-tags--bottom">
+                <span className="tags-label">Topics:</span>
+                {article.tags.map((tag) => (
+                  <Link
+                    key={tag}
+                    to={`/search?tag=${encodeURIComponent(tag)}`}
+                    className="article-tag"
+                  >
+                    {tag}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* ── Share section ───────────────────────────────────────── */}
             <div className="article-share-section">
-              <div className="share-divider"></div>
+              <div className="share-divider" />
               <p className="share-label">Share this article</p>
               <div className="share-buttons">
-                <button type="button" className="share-btn twitter" onClick={() => shareArticle('twitter')} title="Share on Twitter">
+                <button type="button" className="share-btn twitter"  onClick={() => shareArticle('twitter')}>
                   𝕏 Twitter
                 </button>
-                <button type="button" className="share-btn facebook" onClick={() => shareArticle('facebook')} title="Share on Facebook">
+                <button type="button" className="share-btn linkedin" onClick={() => shareArticle('linkedin')}>
+                  in LinkedIn
+                </button>
+                <button type="button" className="share-btn facebook" onClick={() => shareArticle('facebook')}>
                   f Facebook
                 </button>
-                <button type="button" className="share-btn email" onClick={() => shareArticle('email')} title="Share via Email">
+                <button type="button" className="share-btn email"    onClick={() => shareArticle('email')}>
                   ✉ Email
                 </button>
-                <button type="button" className="share-btn copy" onClick={() => shareArticle('copy')} title="Copy link">
-                  🔗 Copy Link
+                <button type="button" className="share-btn copy"     onClick={() => shareArticle('copy')}>
+                  {copyDone ? '✓ Copied!' : '⎘ Copy link'}
                 </button>
               </div>
+
+              {/* Save for later */}
+              <button
+                type="button"
+                className={`save-btn ${saved ? 'save-btn--saved' : ''}`}
+                onClick={toggleSave}
+              >
+                {saved ? '★ Saved to reading list' : '☆ Save for later'}
+              </button>
             </div>
 
+            {/* ── Comments section ────────────────────────────────────── */}
             <div className="article-comments-section">
-              <div className="comments-divider"></div>
-              <h3 className="comments-title">Thoughts & Responses</h3>
+              <div className="comments-divider" />
+              <h2 className="comments-title">Thoughts &amp; Responses</h2>
+
               <form className="comment-form" onSubmit={handlePostComment}>
                 <div className="comment-author-row">
                   <input
@@ -362,21 +588,26 @@ As we continue to advance technologically, the simple practice of handwriting be
                   />
                 </div>
                 <textarea
-                  placeholder="Share your thoughts about this article..."
+                  placeholder="Share your thoughts about this article…"
                   className="comment-input"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   rows={4}
+                  maxLength={2000}
                 />
-                {commentError && (
-                  <p className="comment-error" style={{ color: '#a03030', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                    {commentError}
-                  </p>
-                )}
-                <button type="submit" className="submit-comment-btn" disabled={postPending}>
-                  {postPending ? 'Posting…' : 'Post Comment'}
-                </button>
+                <div className="comment-form-footer">
+                  <span className="comment-char-count">
+                    {commentText.length} / 2000
+                  </span>
+                  {commentError && (
+                    <p className="comment-error">{commentError}</p>
+                  )}
+                  <button type="submit" className="submit-comment-btn" disabled={postPending}>
+                    {postPending ? 'Posting…' : 'Post Comment'}
+                  </button>
+                </div>
               </form>
+
               <div className="comments-list">
                 {comments.length === 0 ? (
                   <p className="no-comments-message">Be the first to share your thoughts.</p>
@@ -394,28 +625,44 @@ As we continue to advance technologically, the simple practice of handwriting be
               </div>
             </div>
 
-            {relatedArticles.length > 0 && (
+            {/* ── Related articles ─────────────────────────────────────── */}
+            {!relatedLoading && related.length > 0 && (
               <div className="article-related-section">
-                <div className="related-divider"></div>
-                <h3 className="related-title">Keep Reading</h3>
+                <div className="related-divider" />
+                <h2 className="related-title">Keep Reading</h2>
                 <div className="related-articles-grid">
-                  {relatedArticles.map((related) => (
-                    <article key={related.id} className="related-article-card">
-                      <p className="related-topic">{related.topic}</p>
-                      <h4 className="related-title-text">{related.title}</h4>
-                      <button type="button" onClick={() => navigate(`/article/${related.id}`)} className="read-related-btn">
-                        Read Article →
-                      </button>
+                  {related.map((rel) => (
+                    <article key={rel._id} className="related-article-card">
+                      {rel.image && (
+                        <img
+                          src={rel.image}
+                          alt={rel.title}
+                          className="related-article-img"
+                          loading="lazy"
+                        />
+                      )}
+                      <div className="related-article-body">
+                        <p className="related-topic">{rel.topic}</p>
+                        <h3 className="related-title-text">{rel.title}</h3>
+                        {rel.excerpt && (
+                          <p className="related-excerpt">{rel.excerpt}</p>
+                        )}
+                        <Link
+                          to={`/article/${rel._id}`}
+                          className="read-related-btn"
+                        >
+                          Read Article →
+                        </Link>
+                      </div>
                     </article>
                   ))}
                 </div>
               </div>
             )}
+
           </div>
         </article>
       </div>
     </>
   );
 }
-
-export default ArticleDetail;

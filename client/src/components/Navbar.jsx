@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import MegaMenu from './MegaMenu';
 import '../styles/Navbar.css';
 
@@ -15,10 +15,10 @@ const INVESTING_MENU = {
         'Mutual Funds',
         'Real Estate',
         'Portfolio Management',
-        'Investing Strategies'
-      ]
-    }
-  ]
+        'Investing Strategies',
+      ],
+    },
+  ],
 };
 
 const PERSONAL_FINANCE_MENU = {
@@ -32,10 +32,10 @@ const PERSONAL_FINANCE_MENU = {
         'Emergency Funds',
         'Retirement',
         'Taxes',
-        'Insurance'
-      ]
-    }
-  ]
+        'Insurance',
+      ],
+    },
+  ],
 };
 
 const FINANCIAL_EDUCATION_MENU = {
@@ -50,10 +50,10 @@ const FINANCIAL_EDUCATION_MENU = {
         'Investment Principles',
         'Financial Markets',
         'Financial Institutions',
-        'Economic Foundations'
-      ]
-    }
-  ]
+        'Economic Foundations',
+      ],
+    },
+  ],
 };
 
 const GUIDES_MENU = {
@@ -67,78 +67,285 @@ const GUIDES_MENU = {
         'Financial Planning',
         'Portfolio Building',
         'Risk Management',
-        'Investment Decision-Making'
-      ]
-    }
-  ]
+        'Investment Decision-Making',
+      ],
+    },
+  ],
 };
 
-function Navbar() {
-  const [activeMenu, setActiveMenu] = useState(null);
+// All nav sections in one place — used for both desktop and mobile drawer
+const NAV_SECTIONS = [
+  { key: 'investing',           label: 'Investing',           path: '/investing',           menu: INVESTING_MENU },
+  { key: 'personal-finance',    label: 'Personal Finance',    path: '/personal-finance',    menu: PERSONAL_FINANCE_MENU },
+  { key: 'financial-education', label: 'Financial Education', path: '/financial-education', menu: FINANCIAL_EDUCATION_MENU },
+  { key: 'guides',              label: 'Guides',              path: '/guides',              menu: GUIDES_MENU },
+];
 
+function Navbar() {
+  // ── Desktop hover mega-menu ──────────────────────────────────────────────
+  const [activeMenu,   setActiveMenu]   = useState(null);
+
+  // ── Mobile drawer ────────────────────────────────────────────────────────
+  const [drawerOpen,   setDrawerOpen]   = useState(false);
+  const [expandedItem, setExpandedItem] = useState(null); // which section is expanded in drawer
+
+  // ── Search ───────────────────────────────────────────────────────────────
+  const [searchOpen,   setSearchOpen]   = useState(false);
+  const [searchQuery,  setSearchQuery]  = useState('');
+
+  const searchInputRef = useRef(null);
+  const navigate       = useNavigate();
+  const location       = useLocation();
+
+  // Close everything when route changes
+  useEffect(() => {
+    setDrawerOpen(false);
+    setSearchOpen(false);
+    setSearchQuery('');
+    setExpandedItem(null);
+    setActiveMenu(null);
+  }, [location.pathname]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerOpen]);
+
+  // Focus search input when search opens
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  // Close drawer / search on Escape key
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setDrawerOpen(false);
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
   const handleMouseEnter = (menu) => setActiveMenu(menu);
   const handleMouseLeave = () => setActiveMenu(null);
 
+  const toggleDrawer = () => {
+    setDrawerOpen((o) => !o);
+    setSearchOpen(false);
+  };
+
+  const toggleSearch = () => {
+    setSearchOpen((o) => !o);
+    setDrawerOpen(false);
+    setSearchQuery('');
+  };
+
+  const toggleExpanded = (key) =>
+    setExpandedItem((prev) => (prev === key ? null : key));
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+    // Navigates to /search?q=... — wire this route in App.jsx as needed
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+    setSearchQuery('');
+  };
+
   return (
-    <header>
-      <div className="header-inner">
-        <div className="header-rule"></div>
-        <Link to="/" className="site-title-link">
-          <div className="site-title">The Wall Street Investor</div>
-        </Link>
-        <div className="header-rule-bottom"></div>
+    <>
+      <header className={drawerOpen ? 'drawer-active' : ''}>
+        <div className="header-inner">
+          <div className="header-rule" />
 
-        <nav>
-          <Link to="/about" className="nav-link">About</Link>
+          <div className="header-top-row">
+            {/* Hamburger — mobile only */}
+            <button
+              className="hamburger"
+              onClick={toggleDrawer}
+              aria-label={drawerOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={drawerOpen}
+              aria-controls="mobile-drawer"
+            >
+              <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
+              <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
+              <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
+            </button>
 
-          <div 
-            className="nav-item"
-            onMouseEnter={() => handleMouseEnter('investing')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <Link to="/investing" className="nav-link">Investing</Link>
-            {activeMenu === 'investing' && (
-              <MegaMenu id="mega-investing" basePath="/investing" {...INVESTING_MENU} />
-            )}
+            <Link to="/" className="site-title-link">
+              <div className="site-title">The Wall Street Investor</div>
+            </Link>
+
+            {/* Search + Subscribe — right side */}
+            <div className="header-actions">
+              <button
+                className="search-toggle"
+                onClick={toggleSearch}
+                aria-label={searchOpen ? 'Close search' : 'Open search'}
+                aria-expanded={searchOpen}
+              >
+                {searchOpen ? (
+                  // × close icon
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                    <line x1="2" y1="2" x2="16" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                    <line x1="16" y1="2" x2="2" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                ) : (
+                  // magnifier icon
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                    <circle cx="7.5" cy="7.5" r="5" stroke="currentColor" strokeWidth="1.8"/>
+                    <line x1="11.5" y1="11.5" x2="16" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                )}
+              </button>
+              <Link to="/subscribe" className="subscribe-btn">Subscribe</Link>
+            </div>
           </div>
 
-          <div 
-            className="nav-item"
-            onMouseEnter={() => handleMouseEnter('personal-finance')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <Link to="/personal-finance" className="nav-link">Personal Finance</Link>
-            {activeMenu === 'personal-finance' && (
-              <MegaMenu id="mega-personal-finance" basePath="/personal-finance" {...PERSONAL_FINANCE_MENU} />
-            )}
-          </div>
+          <div className="header-rule-bottom" />
 
-          <div 
-            className="nav-item"
-            onMouseEnter={() => handleMouseEnter('financial-education')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <Link to="/financial-education" className="nav-link">Financial Education</Link>
-            {activeMenu === 'financial-education' && (
-              <MegaMenu id="mega-financial-education" basePath="/financial-education" {...FINANCIAL_EDUCATION_MENU} />
-            )}
-          </div>
+          {/* ── Desktop nav ────────────────────────────────────────────── */}
+          <nav className="desktop-nav" aria-label="Main navigation">
+            <Link to="/about" className="nav-link">About</Link>
 
-          <div 
-            className="nav-item"
-            onMouseEnter={() => handleMouseEnter('guides')}
-            onMouseLeave={handleMouseLeave}
-          >
-            <Link to="/guides" className="nav-link">Guides</Link>
-            {activeMenu === 'guides' && (
-              <MegaMenu id="mega-guides" basePath="/guides" {...GUIDES_MENU} />
-            )}
-          </div>
+            {NAV_SECTIONS.map(({ key, label, path, menu }) => (
+              <div
+                key={key}
+                className="nav-item"
+                onMouseEnter={() => handleMouseEnter(key)}
+                onMouseLeave={handleMouseLeave}
+              >
+                <Link to={path} className="nav-link">{label}</Link>
+                {activeMenu === key && (
+                  <MegaMenu
+                    id={`mega-${key}`}
+                    basePath={path}
+                    {...menu}
+                  />
+                )}
+              </div>
+            ))}
+          </nav>
 
-          <Link to="/subscribe" className="subscribe-btn">Subscribe</Link>
-        </nav>
-      </div>
-    </header>
+          {/* ── Search bar (slides in below nav) ───────────────────────── */}
+          {searchOpen && (
+            <div className="search-bar" role="search">
+              <form onSubmit={handleSearchSubmit} className="search-bar__form">
+                <svg className="search-bar__icon" width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <circle cx="7.5" cy="7.5" r="5" stroke="currentColor" strokeWidth="1.8"/>
+                  <line x1="11.5" y1="11.5" x2="16" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  className="search-bar__input"
+                  placeholder="Search articles…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoComplete="off"
+                />
+                <button type="submit" className="search-bar__btn" disabled={!searchQuery.trim()}>
+                  Search
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* ── Mobile drawer overlay ─────────────────────────────────────────── */}
+      {drawerOpen && (
+        <div
+          className="drawer-overlay"
+          onClick={() => setDrawerOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <nav
+        id="mobile-drawer"
+        className={`mobile-drawer ${drawerOpen ? 'mobile-drawer--open' : ''}`}
+        aria-label="Mobile navigation"
+        aria-hidden={!drawerOpen}
+      >
+        <div className="mobile-drawer__inner">
+
+          {/* Search inside drawer */}
+          <form onSubmit={handleSearchSubmit} className="mobile-search" role="search">
+            <svg className="search-bar__icon" width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <circle cx="7.5" cy="7.5" r="5" stroke="currentColor" strokeWidth="1.8"/>
+              <line x1="11.5" y1="11.5" x2="16" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+            <input
+              type="search"
+              className="mobile-search__input"
+              placeholder="Search articles…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoComplete="off"
+            />
+          </form>
+
+          <div className="mobile-drawer__divider" />
+
+          {/* About */}
+          <Link to="/about" className="mobile-nav-link">About</Link>
+
+          {/* Sections with expandable sub-items */}
+          {NAV_SECTIONS.map(({ key, label, path, menu }) => {
+            const isExpanded = expandedItem === key;
+            const items = menu.columns[0]?.items ?? [];
+            return (
+              <div key={key} className="mobile-nav-section">
+                <div className="mobile-nav-section__head">
+                  <Link to={path} className="mobile-nav-link">
+                    {label}
+                  </Link>
+                  <button
+                    className={`mobile-expand-btn ${isExpanded ? 'mobile-expand-btn--open' : ''}`}
+                    onClick={() => toggleExpanded(key)}
+                    aria-label={isExpanded ? `Collapse ${label}` : `Expand ${label}`}
+                    aria-expanded={isExpanded}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {isExpanded && (
+                  <div className="mobile-sub-links">
+                    {items.map((item) => {
+                      const slug = item.toLowerCase().trim().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                      return (
+                        <Link
+                          key={item}
+                          to={`${path}/${slug}`}
+                          className="mobile-sub-link"
+                        >
+                          {item}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="mobile-drawer__divider" />
+
+          <Link to="/subscribe" className="subscribe-btn mobile-subscribe-btn">
+            Subscribe
+          </Link>
+        </div>
+      </nav>
+    </>
   );
 }
 

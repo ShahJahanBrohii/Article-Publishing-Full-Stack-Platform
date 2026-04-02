@@ -704,3 +704,279 @@
     margin-top: 2rem;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   NEW ADDITIONS — appended to existing ArticleDetail.css
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Reading progress bar (fixed, very top of viewport) ─────────────────── */
+.reading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(0,0,0,0.08);
+  z-index: 2000;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--color-red, #C41E3A);
+  transition: width 0.1s ease-out;
+}
+
+/* ── Sticky header additions ─────────────────────────────────────────────── */
+.header-article-title {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 500px;
+}
+
+.header-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sticky-save-btn {
+  background: none;
+  border: none;
+  color: var(--gold-light);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.sticky-save-btn--saved { color: var(--gold); }
+.sticky-save-btn:hover  { color: #fff; }
+
+.sticky-share-btn {
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  background: none;
+  border: 1px solid var(--gold-dim);
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s, color 0.2s;
+}
+.sticky-share-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+/* ── Breadcrumb ──────────────────────────────────────────────────────────── */
+.article-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.article-breadcrumb a {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.article-breadcrumb a:hover { color: var(--color-red); }
+.breadcrumb-sep {
+  font-size: 0.75rem;
+  color: var(--color-border);
+}
+.article-breadcrumb span:last-child {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+
+/* ── Article excerpt (deck) ──────────────────────────────────────────────── */
+.article-excerpt {
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--color-muted);
+  line-height: 1.6;
+  margin: 1rem 0 1.25rem;
+  border-left: 3px solid var(--color-red, #C41E3A);
+  padding-left: 1rem;
+}
+
+/* ── Hero image ──────────────────────────────────────────────────────────── */
+.article-hero-figure {
+  margin: 1.5rem 0 2rem;
+}
+.article-hero-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Tags ────────────────────────────────────────────────────────────────── */
+.article-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  align-items: center;
+}
+.article-tags--bottom {
+  margin: 2rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+.tags-label {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-right: 4px;
+}
+.article-tag {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-red, #C41E3A);
+  text-decoration: none;
+  border: 1px solid var(--color-red, #C41E3A);
+  padding: 3px 10px;
+  border-radius: 2px;
+  transition: background 0.18s, color 0.18s;
+}
+.article-tag:hover {
+  background: var(--color-red, #C41E3A);
+  color: #fff;
+}
+
+/* ── H2 heading variant in article body ──────────────────────────────────── */
+.article-heading--h2 {
+  font-size: 1.8rem;
+  margin-top: 3rem;
+}
+
+/* ── TOC sub-item (h3 indent) ────────────────────────────────────────────── */
+.toc-sub .heading-link { padding-left: 12px; font-size: 0.85rem; }
+
+/* ── Save button ─────────────────────────────────────────────────────────── */
+.save-btn {
+  margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  background: none;
+  border: 1px solid var(--color-border);
+  padding: 8px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.save-btn:hover {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+.save-btn--saved {
+  color: var(--color-red, #C41E3A);
+  border-color: var(--color-red, #C41E3A);
+}
+
+/* ── LinkedIn share button ───────────────────────────────────────────────── */
+.share-btn.linkedin:hover {
+  border-color: #0077b5;
+  color: #0077b5;
+}
+
+/* ── Comment form footer (char count + error + submit in one row) ────────── */
+.comment-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0;
+}
+.comment-char-count {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  color: var(--color-faint);
+}
+.comment-error {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: #a03030;
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Related article card image ──────────────────────────────────────────── */
+.related-article-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  border-bottom: 1px solid var(--color-border);
+}
+.related-article-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.related-excerpt {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  line-height: 1.55;
+  margin: 0.5rem 0 1rem;
+}
+
+/* ── Article error state ─────────────────────────────────────────────────── */
+.article-error {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-muted);
+  padding: 3rem 0;
+}
+.article-error a {
+  color: var(--color-red);
+  text-decoration: none;
+}
+.article-error a:hover { text-decoration: underline; }
+
+/* ── Responsive additions ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .header-article-title { display: none; }
+  .article-excerpt { font-size: 1rem; }
+  .article-hero-img { border-radius: 0; }
+  .comment-form-footer { flex-direction: column; align-items: flex-start; }
+  .comment-char-count  { order: -1; }
+  .save-btn { width: 100%; justify-content: center; }
+  .related-article-img { height: 110px; }
+  .article-breadcrumb { display: none; }
+}

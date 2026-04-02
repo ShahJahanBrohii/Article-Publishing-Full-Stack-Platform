@@ -1,0 +1,120 @@
+/* About — WSJ-style light page, crimson hero matches header/footer */
+
+.about {
+  background: var(--color-bg-alt);
+  color: var(--color-ink);
+}
+
+.about-hero {
+  background: var(--crimson);
+  position: relative;
+  padding: 5rem 2rem;
+  text-align: center;
+  border-bottom: 1px solid var(--gold-dim);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.about-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 4px
+    );
+  pointer-events: none;
+}
+
+.about-hero h1,
+.about-hero p {
+  position: relative;
+}
+
+.about-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.about-hero p {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-style: italic;
+  max-width: 36rem;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.about-content {
+  padding: 4rem 2rem;
+}
+
+.about-container {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.about-section {
+  margin-bottom: 3rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.about-section:last-child {
+  border-bottom: none;
+}
+
+.about-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.about-section p {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #333;
+}
+
+.about-section ul {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: #333;
+  list-style-position: outside;
+  padding-left: 1.25rem;
+}
+
+.about-section ul li {
+  margin-bottom: 0.35rem;
+}
+
+.about-section ul li::marker {
+  color: var(--color-red);
+}
+
+@media (max-width: 600px) {
+  .about-hero {
+    padding: 3rem 1rem;
+  }
+
+  .about-content {
+    padding: 2.5rem 1rem;
+  }
+
+  .about-section {
+    margin-bottom: 2rem;
+  }
+}

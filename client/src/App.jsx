@@ -11,13 +11,14 @@ import Contact from './pages/Contact';
 import SectionPage from './pages/SectionPage';
 import Subscribe from './pages/Subscribe';
 import NotFound from './pages/NotFound';
+import SearchResults from './pages/SearchResults';
 
 // Admin Entry Point
 import AdminApp from './admin/AdminApp';
 
 /**
  * Layout wrapper for public-facing pages.
- * This ensures Navbar and Footer only appear on reader pages.
+ * Navbar and Footer only appear on reader pages — admin has its own shell.
  */
 const PublicLayout = ({ children }) => (
   <div className="app">
@@ -32,32 +33,36 @@ const PublicLayout = ({ children }) => (
 function App() {
   return (
     <Routes>
-      {/* ─── ADMIN BRANCH ─── */}
+      {/* ─── ADMIN BRANCH ────────────────────────────────────────────────── */}
       {/* Isolated from public Navbar/Footer. AdminApp handles its own layout. */}
       <Route path="/admin/*" element={<AdminApp />} />
 
-      {/* ─── PUBLIC BRANCH ─── */}
-      {/* All reader routes are nested here within the PublicLayout */}
+      {/* ─── PUBLIC BRANCH ───────────────────────────────────────────────── */}
       <Route
         path="/*"
         element={
           <PublicLayout>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="article/:id" element={<ArticleDetail />} />
-              <Route path="about" element={<About />} />
-              <Route path="contact" element={<Contact />} />
+              <Route path="/"        element={<Home />} />
+              <Route path="about"    element={<About />} />
+              <Route path="contact"  element={<Contact />} />
               <Route path="subscribe" element={<Subscribe />} />
 
-              {/* Section Pages */}
-              <Route path="investing" element={<SectionPage sectionId="investing" />} />
-              <Route path="investing/:topicSlug" element={<SectionPage sectionId="investing" />} />
-              <Route path="personal-finance" element={<SectionPage sectionId="personal-finance" />} />
-              <Route path="personal-finance/:topicSlug" element={<SectionPage sectionId="personal-finance" />} />
-              <Route path="financial-education" element={<SectionPage sectionId="financial-education" />} />
-              <Route path="financial-education/:topicSlug" element={<SectionPage sectionId="financial-education" />} />
-              <Route path="guides" element={<SectionPage sectionId="guides" />} />
-              <Route path="guides/:topicSlug" element={<SectionPage sectionId="guides" />} />
+              {/* Article detail */}
+              <Route path="article/:id" element={<ArticleDetail />} />
+
+              {/* Search — handles ?q=, ?tag=, ?section= */}
+              <Route path="search" element={<SearchResults />} />
+
+              {/* Section hubs */}
+              <Route path="investing"                         element={<SectionPage sectionId="investing" />} />
+              <Route path="investing/:topicSlug"              element={<SectionPage sectionId="investing" />} />
+              <Route path="personal-finance"                  element={<SectionPage sectionId="personal-finance" />} />
+              <Route path="personal-finance/:topicSlug"       element={<SectionPage sectionId="personal-finance" />} />
+              <Route path="financial-education"               element={<SectionPage sectionId="financial-education" />} />
+              <Route path="financial-education/:topicSlug"    element={<SectionPage sectionId="financial-education" />} />
+              <Route path="guides"                            element={<SectionPage sectionId="guides" />} />
+              <Route path="guides/:topicSlug"                 element={<SectionPage sectionId="guides" />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

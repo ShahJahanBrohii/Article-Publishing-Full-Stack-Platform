@@ -35,13 +35,7 @@ header::before {
   position: relative;
 }
 
-/* gold rule above title */
-.header-rule {
-  width: 60%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  margin-top: 0.6rem;
-}
+
 
 .site-title-link {
   text-decoration: none;
@@ -63,12 +57,7 @@ header::before {
 }
 .site-title:hover { letter-spacing: 0.25em; }
 
-.header-rule-bottom {
-  width: 40%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-  margin-bottom: 0.4rem;
-}
+
 
 /* ─── NAV ─── */
 nav {

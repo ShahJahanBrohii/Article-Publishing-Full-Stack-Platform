@@ -161,7 +161,6 @@ function Navbar() {
     <>
       <header className={drawerOpen ? 'drawer-active' : ''}>
         <div className="header-inner">
-          <div className="header-rule" />
 
           <div className="header-top-row">
             {/* Hamburger — mobile only */}
@@ -207,7 +206,7 @@ function Navbar() {
             </div>
           </div>
 
-          <div className="header-rule-bottom" />
+          
 
           {/* ── Desktop nav ────────────────────────────────────────────── */}
           <nav className="desktop-nav" aria-label="Main navigation">

@@ -1,0 +1,390 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   ARTICLE EDITOR — WYSIWYG + IMAGE UPLOAD ADDITIONS
+   Append these to your existing Admin.css or create ArticleEditor.css
+   and import it in ArticleEditor.jsx
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Title input — larger for headlines ──────────────────────────────────── */
+.admin-input--title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ── Char count hint below inputs ────────────────────────────────────────── */
+.admin-char-count {
+  display: block;
+  font-size: 0.72rem;
+  color: #aaa;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.admin-field__hint {
+  display: block;
+  font-size: 0.72rem;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+/* ── Confirm unpublish banner ────────────────────────────────────────────── */
+.admin-confirm-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #fff8ed;
+  border: 1px solid #f5a623;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  color: #7a4a00;
+  flex-wrap: wrap;
+}
+.admin-confirm-banner__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.admin-btn--sm {
+  padding: 5px 12px;
+  font-size: 0.72rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RICH TEXT EDITOR (TipTap)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.rte-wrap {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+.rte-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #fafafa;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.rte-toolbar__group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rte-toolbar__sep {
+  width: 1px;
+  height: 20px;
+  background: #e0e0e0;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.rte-toolbar__wordcount {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: #aaa;
+  white-space: nowrap;
+  padding-left: 8px;
+}
+
+.rte-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 5px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #444;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  line-height: 1;
+  white-space: nowrap;
+}
+.rte-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #ddd;
+  color: #111;
+}
+.rte-btn--active {
+  background: #e8e8e8;
+  border-color: #ccc;
+  color: #111;
+  font-weight: 600;
+}
+.rte-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ── Editor content area ─────────────────────────────────────────────────── */
+.rte-content {
+  min-height: 400px;
+  padding: 20px 24px;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #1a1a1a;
+  outline: none;
+  cursor: text;
+}
+
+/* Tiptap requires targeting the inner div */
+.rte-content .ProseMirror {
+  min-height: 360px;
+  outline: none;
+}
+
+/* Placeholder */
+.rte-content .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #bbb;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Typography inside editor — mirrors the public article rendering */
+.rte-content .ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 2rem 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e5e5;
+  line-height: 1.25;
+  color: #0a0a0a;
+}
+.rte-content .ProseMirror h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.6rem;
+  color: #0a0a0a;
+}
+.rte-content .ProseMirror p {
+  margin-bottom: 1.25rem;
+}
+.rte-content .ProseMirror ul,
+.rte-content .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.rte-content .ProseMirror li { margin-bottom: 0.3rem; }
+.rte-content .ProseMirror blockquote {
+  border-left: 3px solid #C41E3A;
+  padding: 0.5rem 1rem;
+  margin: 1.25rem 0;
+  color: #555;
+  font-style: italic;
+  background: #fafafa;
+}
+.rte-content .ProseMirror code {
+  background: #f0f0f0;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 0.88em;
+  font-family: 'Courier New', monospace;
+}
+.rte-content .ProseMirror pre {
+  background: #1a1a1a;
+  color: #f0f0f0;
+  padding: 1rem 1.25rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+}
+.rte-content .ProseMirror pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: 0.88rem;
+}
+.rte-content .ProseMirror hr {
+  border: none;
+  border-top: 1px solid #e5e5e5;
+  margin: 2rem 0;
+}
+.rte-content .ProseMirror a {
+  color: #C41E3A;
+  text-decoration: underline;
+}
+.rte-content .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem 0;
+  border-radius: 3px;
+  cursor: default;
+}
+/* Selected image highlight */
+.rte-content .ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid #C41E3A;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   IMAGE INSERT PANEL
+   ───────────────────────────────────────────────────────────────────────── */
+
+.img-panel {
+  border-bottom: 1px solid #e5e5e5;
+  background: #f9f9f9;
+  padding: 16px;
+}
+
+.img-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.img-panel__title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #333;
+  text-transform: uppercase;
+}
+
+.img-panel__close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background 0.12s, color 0.12s;
+}
+.img-panel__close:hover { background: #eee; color: #333; }
+
+/* Tabs */
+.img-panel__tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 14px;
+  border-bottom: 2px solid #e5e5e5;
+}
+
+.img-panel__tab {
+  padding: 6px 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #888;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.img-panel__tab:hover { color: #333; }
+.img-panel__tab--active {
+  color: #C41E3A;
+  border-bottom-color: #C41E3A;
+}
+
+.img-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Drop zone */
+.img-dropzone {
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.img-dropzone:hover { border-color: #888; background: #fafafa; }
+.img-dropzone--loading { cursor: wait; opacity: 0.7; }
+
+.img-dropzone__icon { font-size: 2rem; opacity: 0.4; }
+.img-dropzone__text { font-size: 0.88rem; color: #555; font-weight: 500; }
+.img-dropzone__sub  { font-size: 0.75rem; color: #aaa; }
+.img-dropzone__preview {
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: 3px;
+}
+
+.img-panel__err {
+  font-size: 0.82rem;
+  color: #a03030;
+  margin: 0;
+}
+
+.img-panel__url-preview {
+  max-width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  display: none;
+  border-radius: 3px;
+  border: 1px solid #e5e5e5;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   FEATURED IMAGE UPLOADER (sidebar)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.feat-img-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.feat-img-or {
+  font-size: 0.75rem;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.feat-img-url {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+
+.feat-img-preview-wrap {
+  margin-top: 10px;
+  position: relative;
+}
+
+.feat-img-remove {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: #a03030;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.15s;
+}
+.feat-img-remove:hover { color: #6b0000; }

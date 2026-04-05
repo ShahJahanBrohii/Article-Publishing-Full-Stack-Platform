@@ -163,7 +163,7 @@ export default function ArticleDetail() {
     setHeadings([]);
 
     const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-    fetch(`${apiBase}/api/articles/${id}`)
+    fetch(`${apiBase}/api/general/${id}`)
       .then((r) => {
         if (!r.ok) throw new Error(r.status === 404 ? 'Article not found.' : `Server error ${r.status}`);
         return r.json();
@@ -207,7 +207,7 @@ export default function ArticleDetail() {
       ? `status=published&section=${article.section}&limit=4`
       : `status=published&limit=4`;
 
-    fetch(`${apiBase}/api/articles?${q}`)
+    fetch(`${apiBase}/api/general?${q}`)
       .then((r) => r.ok ? r.json() : { articles: [] })
       .then((data) => {
         // Exclude current article, take up to 3

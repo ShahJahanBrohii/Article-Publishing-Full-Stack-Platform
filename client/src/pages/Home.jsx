@@ -66,7 +66,7 @@ export default function Home() {
   useEffect(() => {
     const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
-    fetch(`${apiBase}/api/articles?status=published&limit=6`)
+    fetch(`${apiBase}/api/general?status=published&limit=6`)
       .then((r) => {
         if (!r.ok) throw new Error(`Server error ${r.status}`);
         return r.json();

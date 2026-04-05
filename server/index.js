@@ -10,6 +10,7 @@ const subscriberRoutes  = require('./routes/subscribers');
 const messageRoutes     = require('./routes/messages');
 const homeRoutes        = require('./routes/home');
 const publicRoutes      = require('./routes/public');
+const generalRoutes     = require('./routes/general');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +28,7 @@ app.use(express.json());
 
 app.use('/api/auth',        authRoutes);
 app.use('/api/articles',    articleRoutes);
+app.use('/api/general',     generalRoutes);
 app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/messages',    messageRoutes);
 app.use('/api/home',        homeRoutes);

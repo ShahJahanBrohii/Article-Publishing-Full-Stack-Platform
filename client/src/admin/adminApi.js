@@ -23,8 +23,7 @@ async function req(method, path, body) {
 }
 
 // ─── Articles ─────────────────────────────────────────────────────────────
-export const getArticles    = (q = '') => req('GET', `/api/articles?${q}`);
-export const getArticle     = (id)     => req('GET', `/api/articles/${id}`);
+
 export const createArticle  = (body)   => req('POST', '/api/articles', body);
 export const updateArticle  = (id, b)  => req('PUT', `/api/articles/${id}`, b);
 export const deleteArticle  = (id)     => req('DELETE', `/api/articles/${id}`);
@@ -52,3 +51,18 @@ export const updateHomeContent = (body) =>  req('PUT', '/api/home', body);
 
 // ─── Auth ─────────────────────────────────────────────────────────────────
 export const changePassword = (body) => req('PUT', '/api/auth/password', body);
+
+
+// export const getArticles    = (q = '') => req('GET', `/api/articles?${q}`);
+// export const getArticle     = (id)     => req('GET', `/api/articles/${id}`);
+
+
+export const getArticles = ()=>{
+const res = fetch(`${API_URL}/api/general`).then(res => res.json())
+return res
+}
+
+export const getArticle  = (id)=>{
+  const res = fetch(`${API_URL}/api/general/${id}`).then(res => res.json())
+  return res
+}

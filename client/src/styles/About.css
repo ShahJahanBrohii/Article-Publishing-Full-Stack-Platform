@@ -118,3 +118,15 @@
     margin-bottom: 2rem;
   }
 }
+
+@media (max-width: 768px) {
+  .about-hero h1 {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+  }
+
+  .about-hero p,
+  .about-section p,
+  .about-section ul {
+    font-size: 1rem;
+  }
+}

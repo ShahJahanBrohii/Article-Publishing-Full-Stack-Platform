@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { fetchComments, postComment } from '../lib/api';
 import '../styles/ArticleDetail.css';
 
@@ -36,6 +36,50 @@ function normalizeComment(c) {
     body:      c.body || c.text || '',
     createdAt: c.createdAt || c.created_at || new Date().toISOString(),
   };
+}
+
+function toSlug(text = '') {
+  return text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+}
+
+function sanitizeAndEnhanceHtml(raw = '') {
+  if (!raw || typeof window === 'undefined' || typeof DOMParser === 'undefined') return '';
+
+  const doc = new DOMParser().parseFromString(raw, 'text/html');
+  doc.querySelectorAll('script, style, iframe, object, embed, form').forEach((el) => el.remove());
+
+  doc.querySelectorAll('*').forEach((el) => {
+    [...el.attributes].forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      const value = String(attr.value || '');
+
+      if (name.startsWith('on')) {
+        el.removeAttribute(attr.name);
+        return;
+      }
+
+      if ((name === 'href' || name === 'src') && /^\s*javascript:/i.test(value)) {
+        el.removeAttribute(attr.name);
+      }
+    });
+
+    const tag = el.tagName;
+    if (tag === 'H2' || tag === 'H3') {
+      const text = (el.textContent || '').trim();
+      if (!el.id) el.id = toSlug(text);
+      el.classList.add('article-heading');
+      if (tag === 'H2') el.classList.add('article-heading--h2');
+    }
+
+    if (tag === 'IMG') {
+      el.classList.add('article-inline-image');
+      if (!el.getAttribute('alt')) el.setAttribute('alt', 'Article image');
+      el.setAttribute('loading', 'lazy');
+      el.setAttribute('decoding', 'async');
+    }
+  });
+
+  return doc.body.innerHTML;
 }
 
 // ─── Meta tags helper (updates <head> for SEO + Open Graph) ───────────────────
@@ -84,30 +128,59 @@ function Skeleton({ h = 16, w = '100%', style = {} }) {
 function ArticleBody({ body, contentRef }) {
   if (!body) return null;
 
+  const hasHtml = /<\/?[a-z][\s\S]*>/i.test(body);
+  const safeHtml = useMemo(() => (hasHtml ? sanitizeAndEnhanceHtml(body) : ''), [hasHtml, body]);
+
+  if (hasHtml) {
+    return (
+      <div
+        className="article-content"
+        ref={contentRef}
+        dangerouslySetInnerHTML={{ __html: safeHtml }}
+      />
+    );
+  }
+
   return (
     <div className="article-content" ref={contentRef}>
       {body.split('\n\n').map((block, idx) => {
+        // Skip empty blocks
+        if (!block.trim()) return null;
+
+        // Match markdown headings: ## or ###
         const h3 = block.match(/^###\s+(.+)$/);
         const h2 = block.match(/^##\s+(.+)$/);
+        
         if (h3) {
           const text = h3[1];
-          const slug = text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+          const slug = toSlug(text);
           return <h3 key={idx} id={slug} className="article-heading">{text}</h3>;
         }
+        
         if (h2) {
           const text = h2[1];
-          const slug = text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+          const slug = toSlug(text);
           return <h2 key={idx} id={slug} className="article-heading article-heading--h2">{text}</h2>;
         }
-        // Bold: **text**
-        if (block.trim()) {
-          const parts = block.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
-            const bold = part.match(/^\*\*(.+)\*\*$/);
-            return bold ? <strong key={i}>{bold[1]}</strong> : part;
-          });
-          return <p key={idx}>{parts}</p>;
-        }
-        return null;
+        
+        // If block contains HTML tags, strip them and parse as plain text
+        let cleanBlock = block
+          .replace(/<p[^>]*>|<\/p>/g, '')  // Remove <p> tags
+          .replace(/<br\s*\/?>/g, '')  // Remove <br> tags
+          .replace(/<strong>|<\/strong>/g, '**')  // Convert strong to **
+          .replace(/<em>|<\/em>/g, '*')  // Convert em to *
+          .replace(/<[^>]+>/g, '')  // Remove any other HTML tags
+          .trim();
+        
+        if (!cleanBlock) return null;
+        
+        // Parse bold markdown: **text**
+        const parts = cleanBlock.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
+          const bold = part.match(/^\*\*(.+)\*\*$/);
+          return bold ? <strong key={i}>{bold[1]}</strong> : part;
+        });
+        
+        return <p key={idx}>{parts}</p>;
       })}
     </div>
   );
@@ -116,7 +189,6 @@ function ArticleBody({ body, contentRef }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 export default function ArticleDetail() {
   const { id }     = useParams();
-  const navigate   = useNavigate();
 
   // Article data
   const [article, setArticle]   = useState(null);
@@ -129,7 +201,6 @@ export default function ArticleDetail() {
 
   // Reading progress + sticky header
   const [progress,     setProgress]     = useState(0);
-  const [showSticky,   setShowSticky]   = useState(false);
   const [copyDone,     setCopyDone]     = useState(false);
 
   // Save / bookmark
@@ -188,13 +259,26 @@ export default function ArticleDetail() {
   useEffect(() => {
     if (!article?.body) return;
     const found = [];
-    const re = /^#{2,3}\s+(.+)$/gm;
-    let m;
-    while ((m = re.exec(article.body)) !== null) {
-      const text = m[1];
-      const slug = text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      found.push({ id: slug, text, level: m[0].startsWith('###') ? 3 : 2 });
+
+    if (/<\/?[a-z][\s\S]*>/i.test(article.body) && typeof DOMParser !== 'undefined') {
+      const safeHtml = sanitizeAndEnhanceHtml(article.body);
+      const doc = new DOMParser().parseFromString(safeHtml, 'text/html');
+      doc.querySelectorAll('h2, h3').forEach((h) => {
+        const text = (h.textContent || '').trim();
+        if (!text) return;
+        const slug = h.getAttribute('id') || toSlug(text);
+        found.push({ id: slug, text, level: h.tagName === 'H3' ? 3 : 2 });
+      });
+    } else {
+      const re = /^#{2,3}\s+(.+)$/gm;
+      let m;
+      while ((m = re.exec(article.body)) !== null) {
+        const text = m[1];
+        const slug = toSlug(text);
+        found.push({ id: slug, text, level: m[0].startsWith('###') ? 3 : 2 });
+      }
     }
+
     setHeadings(found);
   }, [article]);
 
@@ -243,9 +327,6 @@ export default function ArticleDetail() {
       const scrolled = Math.max(0, -top);
       const pct = height > 0 ? Math.min(100, (scrolled / (height - window.innerHeight)) * 100) : 0;
       setProgress(Math.max(0, pct));
-
-      // Sticky article title (shows after scrolling past ~250px)
-      setShowSticky(window.scrollY > 250);
 
       // Active heading highlight in TOC
       if (!contentRef.current) return;
@@ -397,35 +478,6 @@ export default function ArticleDetail() {
         <div className="progress-fill" style={{ width: `${progress}%` }} />
       </div>
 
-      {/* ── Sticky mini-header (appears after scrolling past hero) ──────── */}
-      <div className={`article-reading-header ${showSticky ? 'compact' : ''}`} aria-hidden={!showSticky}>
-        <div className="header-content">
-          <button className="header-back-button" onClick={() => navigate(-1)} aria-label="Go back">←</button>
-          <div className="header-publication">
-            <p className={`pub-full ${showSticky ? 'fade-out' : ''}`}>The Wall Street Investor</p>
-            <p className={`pub-short ${showSticky ? 'fade-in' : ''}`}>WSI</p>
-          </div>
-          {showSticky && (
-            <span className="header-article-title">{article.title}</span>
-          )}
-          <div className="header-spacer" />
-          {/* Sticky share + save */}
-          <div className="header-actions-right">
-            <button
-              className={`sticky-save-btn ${saved ? 'sticky-save-btn--saved' : ''}`}
-              onClick={toggleSave}
-              aria-label={saved ? 'Remove from saved articles' : 'Save article'}
-              title={saved ? 'Saved' : 'Save for later'}
-            >
-              {saved ? '★' : '☆'}
-            </button>
-            <button className="sticky-share-btn" onClick={() => shareArticle('copy')} aria-label="Copy link">
-              {copyDone ? '✓ Copied' : '⎘ Share'}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* ── Main layout ───────────────────────────────────────────────────── */}
       <div className="article-detail-wrapper" ref={articleRef}>
 
@@ -457,68 +509,64 @@ export default function ArticleDetail() {
         {/* ── Article main content ───────────────────────────────────────── */}
         <article className="article-detail">
           <div className="article-container">
-
-            {/* Header */}
-            <header className="article-header">
-              {/* Breadcrumb */}
-              <nav className="article-breadcrumb" aria-label="Breadcrumb">
-                <Link to="/">Home</Link>
-                {article.section && (
-                  <>
-                    <span className="breadcrumb-sep">›</span>
-                    <Link to={`/${article.section}`}>
-                      {article.section.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
-                    </Link>
-                  </>
-                )}
-                <span className="breadcrumb-sep">›</span>
-                <span>{article.topic}</span>
-              </nav>
-
-              <p className="article-topic">{article.topic}</p>
-              <h1 className="article-title-main">{article.title}</h1>
-
-              {article.excerpt && (
-                <p className="article-excerpt">{article.excerpt}</p>
+            {/* Breadcrumb */}
+            <nav className="article-breadcrumb" aria-label="Breadcrumb">
+              <Link to="/">Home</Link>
+              {article.section && (
+                <>
+                  <span className="breadcrumb-sep">›</span>
+                  <Link to={`/${article.section}`}>
+                    {article.section.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </Link>
+                </>
               )}
+              <span className="breadcrumb-sep">›</span>
+              <span>{article.topic}</span>
+            </nav>
 
-              <div className="article-meta-enhanced">
-                <span className="author-info">By {article.author || 'Editorial Staff'}</span>
-                <span className="separator">·</span>
-                <time className="publish-date" dateTime={article.publishedAt}>
-                  {formatDate(article.publishedAt)}
-                </time>
-                <span className="separator">·</span>
-                <span className="reading-time">{calcReadTime}</span>
+            <p className="article-topic">{article.topic}</p>
+            <h1 className="article-title-main">{article.title}</h1>
+
+            {article.excerpt && (
+              <p className="article-excerpt">{article.excerpt}</p>
+            )}
+
+            <div className="article-meta-enhanced">
+              <span className="author-info">By {article.author || 'Editorial Staff'}</span>
+              <span className="separator">·</span>
+              <time className="publish-date" dateTime={article.publishedAt}>
+                {formatDate(article.publishedAt)}
+              </time>
+              <span className="separator">·</span>
+              <span className="reading-time">{calcReadTime}</span>
+            </div>
+
+            {/* Tags */}
+            {article.tags?.length > 0 && (
+              <div className="article-tags">
+                {article.tags.map((tag) => (
+                  <Link
+                    key={tag}
+                    to={`/search?tag=${encodeURIComponent(tag)}`}
+                    className="article-tag"
+                  >
+                    {tag}
+                  </Link>
+                ))}
               </div>
+            )}
 
-              {/* Tags */}
-              {article.tags?.length > 0 && (
-                <div className="article-tags">
-                  {article.tags.map((tag) => (
-                    <Link
-                      key={tag}
-                      to={`/search?tag=${encodeURIComponent(tag)}`}
-                      className="article-tag"
-                    >
-                      {tag}
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {/* Hero image */}
-              {article.image && (
-                <figure className="article-hero-figure">
-                  <img
-                    src={article.image}
-                    alt={article.title}
-                    className="article-hero-img"
-                    loading="lazy"
-                  />
-                </figure>
-              )}
-            </header>
+            {/* Lead image belongs to content flow, not header block */}
+            {article.image && (
+              <figure className="article-content-lead-image">
+                <img
+                  src={article.image}
+                  alt={article.title}
+                  className="article-content-lead-image__img"
+                  loading="lazy"
+                />
+              </figure>
+            )}
 
             {/* Body */}
             <ArticleBody body={bodyText} contentRef={contentRef} />
@@ -631,31 +679,40 @@ export default function ArticleDetail() {
                 <div className="related-divider" />
                 <h2 className="related-title">Keep Reading</h2>
                 <div className="related-articles-grid">
-                  {related.map((rel) => (
-                    <article key={rel._id} className="related-article-card">
-                      {rel.image && (
-                        <img
-                          src={rel.image}
-                          alt={rel.title}
-                          className="related-article-img"
-                          loading="lazy"
-                        />
-                      )}
-                      <div className="related-article-body">
-                        <p className="related-topic">{rel.topic}</p>
-                        <h3 className="related-title-text">{rel.title}</h3>
-                        {rel.excerpt && (
-                          <p className="related-excerpt">{rel.excerpt}</p>
-                        )}
-                        <Link
-                          to={`/article/${rel._id}`}
-                          className="read-related-btn"
-                        >
-                          Read Article →
-                        </Link>
-                      </div>
-                    </article>
-                  ))}
+                  {related.map((rel) => {
+                    const relReadTime = readingTime(rel.body || '');
+                    return (
+                      <article key={rel._id} className="related-article-card">
+                        <div className="related-image-wrapper">
+                          {rel.image && (
+                            <img
+                              src={rel.image}
+                              alt={rel.title}
+                              className="related-article-img"
+                              loading="lazy"
+                            />
+                          )}
+                          <div className="related-article-badge">
+                            <span className="badge-icon">🕐</span>
+                            {relReadTime}
+                          </div>
+                        </div>
+                        <div className="related-article-body">
+                          <p className="related-topic">{rel.topic}</p>
+                          <h3 className="related-title-text">{rel.title}</h3>
+                          {rel.excerpt && (
+                            <p className="related-excerpt">{rel.excerpt}</p>
+                          )}
+                          <Link
+                            to={`/article/${rel._id}`}
+                            className="read-related-btn"
+                          >
+                            Read Article →
+                          </Link>
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               </div>
             )}

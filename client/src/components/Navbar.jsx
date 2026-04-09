@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import MegaMenu from './MegaMenu';
+import { useSiteSettings } from '../lib/siteSettings';
 import '../styles/Navbar.css';
 
 const INVESTING_MENU = {
@@ -82,6 +83,8 @@ const NAV_SECTIONS = [
 ];
 
 function Navbar() {
+  const { settings } = useSiteSettings();
+
   // ── Desktop hover mega-menu ──────────────────────────────────────────────
   const [activeMenu,   setActiveMenu]   = useState(null);
 
@@ -177,7 +180,16 @@ function Navbar() {
             </button>
 
             <Link to="/" className="site-title-link">
-              <div className="site-title">The Wall Street Investor</div>
+              <div className="site-brand">
+                {settings?.siteLogo && (
+                  <img
+                    src={settings.siteLogo}
+                    alt={settings.siteTitle || 'Site logo'}
+                    className="site-brand__logo"
+                  />
+                )}
+                <div className="site-title">{settings?.siteTitle || 'The Wall Street Investor'}</div>
+              </div>
             </Link>
 
             {/* Search + Subscribe — right side */}

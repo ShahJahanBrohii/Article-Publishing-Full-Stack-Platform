@@ -29,6 +29,14 @@ export default function Subscribers() {
     load();
   };
 
+  const handleExport = async () => {
+    try {
+      await exportSubscribers();
+    } catch (err) {
+      window.alert(err.message || 'Could not export subscribers.');
+    }
+  };
+
   return (
     <div className="admin-page">
       <div className="admin-page__head">
@@ -36,7 +44,7 @@ export default function Subscribers() {
           Subscribers
           <span className="admin-page__count">{data.total}</span>
         </h1>
-        <button className="admin-btn admin-btn--primary" onClick={exportSubscribers}>
+        <button className="admin-btn admin-btn--primary" onClick={handleExport}>
           ↓ Export CSV
         </button>
       </div>

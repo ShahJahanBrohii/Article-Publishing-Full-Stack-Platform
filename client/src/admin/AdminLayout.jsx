@@ -8,6 +8,7 @@ const NAV = [
   { to: '/admin/subscribers', label: 'Subscribers',  icon: '◉' },
   { to: '/admin/messages',    label: 'Messages',     icon: '✉' },
   { to: '/admin/home',        label: 'Home Content', icon: '⌂' },
+  { to: '/admin/settings',    label: 'Settings',     icon: '⚙' },
 ];
 
 export default function AdminLayout() {
@@ -28,7 +29,7 @@ export default function AdminLayout() {
         <div className="admin-sidebar__head">
           <div className="admin-sidebar__logo">
             <span className="admin-sidebar__logo-icon">WSI</span>
-            {!collapsed && <span className="admin-sidebar__logo-text">Admin</span>}
+            {!collapsed && <span className="admin-sidebar__logo-text">Junaid</span>}
           </div>
           <button
             className="admin-sidebar__toggle"

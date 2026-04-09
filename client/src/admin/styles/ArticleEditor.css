@@ -11,6 +11,27 @@
   letter-spacing: -0.01em;
 }
 
+.admin-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-editor-main .admin-card,
+.admin-editor-sidebar .admin-card {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.admin-img-preview {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--adm-radius);
+  margin-top: 8px;
+}
+
 /* ── Char count hint below inputs ────────────────────────────────────────── */
 .admin-char-count {
   display: block;
@@ -388,3 +409,121 @@
   transition: color 0.15s;
 }
 .feat-img-remove:hover { color: #6b0000; }
+
+@media (max-width: 1200px) {
+  .admin-editor-grid {
+    grid-template-columns: 1fr 280px;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rte-toolbar {
+    gap: 6px;
+  }
+
+  .rte-toolbar__sep {
+    display: none;
+  }
+
+  .rte-toolbar__wordcount {
+    width: 100%;
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: 6px;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .img-panel {
+    padding: 14px;
+  }
+
+  .img-panel__tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .img-panel__tab {
+    flex: 1 0 auto;
+  }
+
+  .feat-img-row {
+    align-items: stretch;
+  }
+
+  .feat-img-url {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-editor-main .admin-card,
+  .admin-editor-sidebar .admin-card {
+    padding: 16px;
+  }
+
+  .rte-toolbar {
+    padding: 6px;
+  }
+
+  .rte-btn {
+    min-width: 30px;
+    height: 30px;
+    font-size: 0.78rem;
+  }
+
+  .rte-content {
+    min-height: 320px;
+    padding: 16px 18px;
+    font-size: 0.98rem;
+  }
+
+  .rte-content .ProseMirror {
+    min-height: 280px;
+  }
+
+  .img-panel {
+    padding: 12px;
+  }
+
+  .img-dropzone {
+    padding: 24px 16px;
+  }
+
+  .img-dropzone__icon {
+    font-size: 1.6rem;
+  }
+
+  .img-dropzone__text {
+    font-size: 0.82rem;
+  }
+
+  .feat-img-row {
+    gap: 6px;
+  }
+
+  .feat-img-or {
+    width: 100%;
+    text-align: center;
+  }
+
+  .feat-img-url {
+    font-size: 16px;
+  }
+
+  .admin-confirm-banner {
+    padding: 12px;
+  }
+
+  .admin-confirm-banner__actions {
+    width: 100%;
+  }
+
+  .admin-confirm-banner__actions .admin-btn {
+    flex: 1;
+  }
+}

@@ -191,8 +191,11 @@ export default function HomeContent() {
 
         {/* Sidebar News */}
         <div className="admin-card" style={{ marginBottom: '20px' }}>
+          <p className="admin-field__hint" style={{ marginBottom: '12px' }}>
+            Optional pinned items. If you leave this short or empty, the home page auto-fills from latest published articles.
+          </p>
           <ArrayEditor
-            label="Latest / Sidebar News"
+            label="Latest / Sidebar News (Pinned)"
             items={form.sidebarNews || []}
             onChange={(val) => setForm((f) => ({ ...f, sidebarNews: val }))}
             fields={SIDEBAR_FIELDS}
@@ -201,8 +204,11 @@ export default function HomeContent() {
 
         {/* Opinion */}
         <div className="admin-card" style={{ marginBottom: '20px' }}>
+          <p className="admin-field__hint" style={{ marginBottom: '12px' }}>
+            Optional pinned opinion items. If empty, Opinion auto-pulls from published articles.
+          </p>
           <ArrayEditor
-            label="Opinion Pieces"
+            label="Opinion Pieces (Pinned)"
             items={form.opinionPieces || []}
             onChange={(val) => setForm((f) => ({ ...f, opinionPieces: val }))}
             fields={OPINION_FIELDS}

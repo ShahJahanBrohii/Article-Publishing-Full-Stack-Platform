@@ -5,8 +5,8 @@ const homeContentSchema = new mongoose.Schema(
   {
     hero: {
       category:    { type: String, default: 'Investing' },
-      headline:    { type: String, default: 'From Knowledge to Financial Freedom' },
-      subheadline: { type: String, default: '' },
+      headline:    { type: String, default: "From 'Knowledge' to 'Financial Freedom'" },
+      subheadline: { type: String, default: 'Practical Insights on investing, personal finance, and financial education - helping you understand how money works and how wealth is built.' },
       body:        { type: String, default: '' },
       image:       { type: String, default: '' },
       caption:     { type: String, default: '' },

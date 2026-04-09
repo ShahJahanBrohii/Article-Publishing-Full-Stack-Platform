@@ -10,6 +10,10 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import SectionPage from './pages/SectionPage';
 import Subscribe from './pages/Subscribe';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Cookies from './pages/Cookies';
+import Disclaimer from './pages/Disclaimer';
 import NotFound from './pages/NotFound';
 import SearchResults from './pages/SearchResults';
 
@@ -47,6 +51,12 @@ function App() {
               <Route path="about"    element={<About />} />
               <Route path="contact"  element={<Contact />} />
               <Route path="subscribe" element={<Subscribe />} />
+
+              {/* Legal pages */}
+              <Route path="privacy"   element={<Privacy />} />
+              <Route path="terms"     element={<Terms />} />
+              <Route path="cookies"   element={<Cookies />} />
+              <Route path="disclaimer" element={<Disclaimer />} />
 
               {/* Article detail */}
               <Route path="article/:id" element={<ArticleDetail />} />

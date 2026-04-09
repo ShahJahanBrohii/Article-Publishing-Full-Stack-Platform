@@ -10,6 +10,7 @@ import ArticleEditor from './pages/ArticleEditor';
 import Subscribers from './pages/Subscribers';
 import Messages from './pages/Messages';
 import HomeContent from './pages/HomeContent';
+import Settings from './pages/Settings';
 import './styles/Admin.css';
 
 export default function AdminApp() {
@@ -33,6 +34,7 @@ export default function AdminApp() {
           <Route path="subscribers"   element={<Subscribers />} />
           <Route path="messages"      element={<Messages />} />
           <Route path="home"          element={<HomeContent />} />
+          <Route path="settings"      element={<Settings />} />
           <Route path="*"             element={<Navigate to="/admin" replace />} />
         </Route>
       </Routes>

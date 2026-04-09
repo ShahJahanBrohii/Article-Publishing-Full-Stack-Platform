@@ -32,11 +32,26 @@ export const togglePublish  = (id)     => req('PUT', `/api/articles/${id}/publis
 // ─── Subscribers ──────────────────────────────────────────────────────────
 export const getSubscribers    = (q = '') => req('GET', `/api/subscribers?${q}`);
 export const deleteSubscriber  = (id)     => req('DELETE', `/api/subscribers/${id}`);
-export const exportSubscribers = () => {
+export const exportSubscribers = async () => {
+  const res = await fetch(`${API_URL}/api/subscribers/export`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token()}` },
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Export failed (${res.status})`);
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = `${API_URL}/api/subscribers/export?token=${token()}`;
+  a.href = url;
   a.download = 'subscribers.csv';
+  document.body.appendChild(a);
   a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 };
 
 // ─── Messages ─────────────────────────────────────────────────────────────
@@ -48,6 +63,10 @@ export const deleteMessage = (id)     => req('DELETE', `/api/messages/${id}`);
 // ─── Home Content ─────────────────────────────────────────────────────────
 export const getHomeContent    = () =>      req('GET', '/api/home');
 export const updateHomeContent = (body) =>  req('PUT', '/api/home', body);
+
+// ─── Site Settings ────────────────────────────────────────────────────────
+export const getSettings    = () =>      req('GET', '/api/settings');
+export const updateSettings = (body) =>  req('PUT', '/api/settings', body);
 
 // ─── Auth ─────────────────────────────────────────────────────────────────
 export const changePassword = (body) => req('PUT', '/api/auth/password', body);

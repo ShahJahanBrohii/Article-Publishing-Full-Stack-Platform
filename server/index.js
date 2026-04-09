@@ -2,6 +2,7 @@ require('dotenv').config();
 const express    = require('express');
 const cors       = require('cors');
 const mongoose   = require('mongoose');
+const path       = require('path');
 const seedAdmin  = require('./utils/seedAdmin');
 
 const authRoutes        = require('./routes/auth');
@@ -11,6 +12,8 @@ const messageRoutes     = require('./routes/messages');
 const homeRoutes        = require('./routes/home');
 const publicRoutes      = require('./routes/public');
 const generalRoutes     = require('./routes/general');
+const settingsRoutes    = require('./routes/settings');
+const uploadRoutes      = require('./routes/upload');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -23,6 +26,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ─── Routes ───────────────────────────────────────────────────────────────
 
@@ -32,6 +36,8 @@ app.use('/api/general',     generalRoutes);
 app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/messages',    messageRoutes);
 app.use('/api/home',        homeRoutes);
+app.use('/api/settings',    settingsRoutes);
+app.use('/api/upload',      uploadRoutes);
 app.use('/api',             publicRoutes);   // /api/subscribe, /api/contact
 
 // ─── Health check ─────────────────────────────────────────────────────────

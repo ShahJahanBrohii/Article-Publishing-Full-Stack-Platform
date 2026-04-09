@@ -41,6 +41,21 @@ header::before {
   text-decoration: none;
 }
 
+.site-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.site-brand__logo {
+  width: auto;
+  height: 34px;
+  max-width: 220px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+}
+
 .site-title {
   font-family: 'UnifrakturMaguntia', serif;
   font-size: clamp(1.2rem, 3vw, 2rem);
@@ -49,7 +64,7 @@ header::before {
   text-transform: none;
   color: var(--gold-light);
   text-shadow: 0 0 30px rgba(201,168,76,0.35), 0 2px 4px rgba(0,0,0,0.5);
-  padding: 0.5rem 0 0.3rem;
+  padding: 0;
   text-align: center;
   position: relative;
   transition: letter-spacing 0.4s ease;
@@ -275,6 +290,8 @@ nav {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .header-actions {
@@ -528,7 +545,7 @@ nav {
 }
 
 /* ─── Responsive breakpoints ─────────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .hamburger   { display: flex; }
   .desktop-nav { display: none; }
   /* Hide desktop subscribe — it lives inside the drawer on mobile */
@@ -536,9 +553,11 @@ nav {
   /* Tighten header padding on small screens */
   .header-inner { padding: 0 1rem; }
   .site-title { font-size: clamp(1rem, 5vw, 1.5rem); }
+  .header-actions { gap: 8px; }
+  .search-toggle { width: 32px; height: 32px; }
 }
 
-@media (min-width: 769px) {
+@media (min-width: 901px) {
   /* Ensure drawer + overlay are fully hidden on desktop */
   .mobile-drawer  { display: none !important; }
   .drawer-overlay { display: none !important; }
@@ -547,7 +566,11 @@ nav {
 
 /* ─── Legacy small-screen tweaks (kept from original) ────────────────── */
 @media (max-width: 600px) {
+  .header-inner { padding: 0 0.75rem; }
+  .site-brand { gap: 0.2rem; }
+  .site-brand__logo { height: 28px; max-width: 180px; }
   .nav-link   { padding: 0.4rem 0.9rem; font-size: 0.58rem; }
   .mega-menu  { min-width: 280px; }
   .mega-col   { padding: 0 0.5rem; }
+  .header-actions { width: 100%; justify-content: flex-end; }
 }

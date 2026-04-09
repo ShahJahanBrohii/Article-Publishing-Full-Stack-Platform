@@ -153,10 +153,10 @@ export default function SearchResults() {
     try {
       const q = new URLSearchParams({ status: 'published', page, limit: 10 });
       if (query)   q.set('search',  query);
-      if (tag)     q.set('search',  tag);   // tag search reuses search param
+      if (tag)     q.set('tag', tag);
       if (section) q.set('section', section);
 
-      const res  = await fetch(`${API_BASE()}/api/articles?${q.toString()}`);
+      const res  = await fetch(`${API_BASE()}/api/general?${q.toString()}`);
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       const data = await res.json();
 
@@ -188,7 +188,7 @@ export default function SearchResults() {
     e.preventDefault();
     const trimmed = inputValue.trim();
     if (!trimmed) return;
-    setSearchParams({ q: trimmed, sort, ...(section && { section }) });
+    setSearchParams({ q: trimmed, sort, ...(section && { section }), ...(tag && { tag }) });
   };
 
   const setParam = (key, value) => {

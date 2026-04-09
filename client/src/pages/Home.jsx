@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ArticleCard from '../components/ArticleCard';
 import { subscribeEmail } from '../lib/api';
+import { useSiteSettings } from '../lib/siteSettings';
 import '../styles/Home.css';
 
 
@@ -11,6 +12,28 @@ function readingTime(body = '') {
   const words = body.trim().split(/\s+/).filter(Boolean).length;
   const mins  = Math.max(1, Math.round(words / 200));
   return `${mins} min read`;
+}
+
+function relativeTime(iso) {
+  if (!iso) return 'Recently';
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return 'Recently';
+
+  const diffMs = Date.now() - parsed.getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'Just now';
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hr${hr === 1 ? '' : 's'} ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day} day${day === 1 ? '' : 's'} ago`;
+  return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function titleCaseSection(section = '') {
+  return String(section)
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 // ─── Skeleton placeholder shown while data loads ──────────────────────────
@@ -30,6 +53,8 @@ function SkeletonBlock({ height = 16, width = '100%', style = {} }) {
 }
 
 export default function Home() {
+  const { settings } = useSiteSettings();
+
   // ── CMS content from GET /api/home ──────────────────────────────────────
   const [homeContent,    setHomeContent]    = useState(null);
   const [contentLoading, setContentLoading] = useState(true);
@@ -66,7 +91,7 @@ export default function Home() {
   useEffect(() => {
     const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
-    fetch(`${apiBase}/api/general?status=published&limit=6`)
+    fetch(`${apiBase}/api/general?status=published&limit=30`)
       .then((r) => {
         if (!r.ok) throw new Error(`Server error ${r.status}`);
         return r.json();
@@ -108,10 +133,58 @@ export default function Home() {
   const opinionPieces = homeContent?.opinionPieces ?? [];
   const mostRead      = homeContent?.mostRead      ?? [];
 
-  // ── Deduplicate opinion pieces by headline (guards against admin mistakes) ─
-  const uniqueOpinions = opinionPieces.filter(
-    (op, idx, arr) => arr.findIndex((o) => o.headline === op.headline) === idx
-  );
+  const manualLatest = sidebarNews
+    .filter((item) => item?.headline)
+    .map((item) => ({
+      category: item.category || 'Latest',
+      headline: item.headline,
+      time: item.time || 'Recently',
+      to: item.to || '/',
+    }));
+
+  const autoLatest = articles.map((article) => ({
+    category: article.section ? titleCaseSection(article.section) : (article.topic || 'Latest'),
+    headline: article.title,
+    time: relativeTime(article.publishedAt || article.createdAt),
+    to: `/article/${article._id}`,
+  }));
+
+  const latestItems = [
+    ...manualLatest,
+    ...autoLatest.filter((a) => !manualLatest.some((m) => m.headline === a.headline)),
+  ].slice(0, 5);
+
+  const manualOpinions = opinionPieces
+    .filter((op) => op?.headline)
+    .map((op) => ({
+      headline: op.headline,
+      excerpt: op.excerpt || '',
+      author: op.author || 'Editorial',
+      bio: op.bio || '',
+      to: op.to || '/',
+    }));
+
+  const opinionTagged = articles.filter((article) => {
+    const section = String(article.section || '');
+    const topic = String(article.topic || '');
+    const tags = Array.isArray(article.tags) ? article.tags.join(' ') : '';
+    return /opinion/i.test(`${section} ${topic} ${tags}`);
+  });
+
+  const fallbackOpinionPool = opinionTagged.length ? opinionTagged : articles;
+
+  const autoOpinions = fallbackOpinionPool.map((article) => ({
+    headline: article.title,
+    excerpt: article.excerpt || '',
+    author: article.author || 'Editorial',
+    bio: article.section ? titleCaseSection(article.section) : '',
+    to: `/article/${article._id}`,
+  }));
+
+  const opinionItems = [
+    ...manualOpinions,
+    ...autoOpinions.filter((a) => !manualOpinions.some((m) => m.headline === a.headline)),
+  ].slice(0, 3);
 
   return (
     <div className="home">
@@ -145,12 +218,12 @@ export default function Home() {
             </>
           )}
 
-          {!contentLoading && sidebarNews.length === 0 && !contentError && (
+          {!contentLoading && latestItems.length === 0 && (
             <p className="home-empty-note">No latest items yet.</p>
           )}
 
           {!contentLoading &&
-            sidebarNews.map((item, i) => (
+            latestItems.map((item, i) => (
               <Link key={i} to={item.to || '/'} className="sidebar-item sidebar-item--link">
                 <span className="sidebar-item__cat">{item.category}</span>
                 <h4 className="sidebar-item__headline">{item.headline}</h4>
@@ -182,12 +255,12 @@ export default function Home() {
                 </div>
 
                 <h1 className="hero-lead__headline">
-                  {hero.headline || 'From Knowledge to Financial Freedom'}
+                  {hero.headline || "From ‘Knowledge’ to ‘Financial Freedom’"}
                 </h1>
 
-                {hero.subheadline && (
-                  <p className="hero-lead__subhead">{hero.subheadline}</p>
-                )}
+                <p className="hero-lead__subhead">
+                  {hero.subheadline || 'Practical Insights on investing, personal finance, and financial education - helping you understand how money works and how wealth is built'}
+                </p>
 
                 <div className="hero-lead__meta">
                   {hero.author && (
@@ -258,17 +331,17 @@ export default function Home() {
               </>
             )}
 
-            {!contentLoading && uniqueOpinions.length === 0 && !contentError && (
+            {!contentLoading && opinionItems.length === 0 && (
               <p className="home-empty-note">No opinion pieces yet.</p>
             )}
 
             {!contentLoading &&
-              uniqueOpinions.map((op, i) => (
+              opinionItems.map((op, i) => (
                 <Link
                   key={i}
                   to={op.to || '/'}
                   className={`opinion-item opinion-item--link ${
-                    i === uniqueOpinions.length - 1 ? 'opinion-item--last' : ''
+                    i === opinionItems.length - 1 ? 'opinion-item--last' : ''
                   }`}
                 >
                   <h4 className="opinion-item__headline">{op.headline}</h4>
@@ -336,9 +409,9 @@ export default function Home() {
 
           {/* Newsletter */}
           <div className="newsletter">
-            <div className="newsletter__heading">Morning Briefing</div>
+            <div className="newsletter__heading">{settings?.newsletterTitle || 'Morning Briefing'}</div>
             <p className="newsletter__copy">
-              Five financial insights in your inbox every morning. No noise, no spam.
+              {settings?.newsletterSubtitle || 'Five financial insights in your inbox every morning. No noise, no spam.'}
             </p>
 
             {newsletterStatus?.ok && (
@@ -414,6 +487,7 @@ export default function Home() {
               <ArticleCard
                 key={article._id}
                 id={article._id}
+                image={article.image}
                 topic={article.topic}
                 title={article.title}
                 excerpt={article.excerpt}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSiteSettings } from '../lib/siteSettings';
 import '../styles/Footer.css';
 
 
@@ -7,13 +8,6 @@ const COMPANY_LINKS = [
   { label: 'About',   to: '/about'   },
   { label: 'Contact', to: '/contact' },
   { label: 'Subscribe', to: '/subscribe' },
-];
-
-const LEGAL_LINKS = [
-  { label: 'Privacy Policy',    to: '/privacy'    },
-  { label: 'Terms of Service',  to: '/terms'      },
-  { label: 'Cookie Policy',     to: '/cookies'    },
-  { label: 'Disclaimer',        to: '/disclaimer' },
 ];
 
 // Simple SVG social icons — no external icon library needed
@@ -42,7 +36,18 @@ function RSSIcon() {
 }
 
 function Footer() {
+  const { settings, loading } = useSiteSettings();
   const currentYear = new Date().getFullYear();
+
+  if (loading || !settings) return null; // Don't render footer until settings are loaded
+
+  // Create legal links from settings
+  const LEGAL_LINKS = [
+    { label: settings.privacyPolicySummary, to: '/privacy' },
+    { label: settings.termsOfServiceSummary, to: '/terms' },
+    { label: settings.cookiePolicySummary, to: '/cookies' },
+    { label: settings.disclaimerSummary, to: '/disclaimer' },
+  ];
 
   return (
     <footer className="site-footer">
@@ -51,9 +56,9 @@ function Footer() {
       <div className="footer-newsletter-band">
         <div className="footer-newsletter-band__inner">
           <div className="footer-newsletter-band__copy">
-            <p className="footer-newsletter-band__heading">Morning Briefing</p>
+            <p className="footer-newsletter-band__heading">{settings.newsletterTitle}</p>
             <p className="footer-newsletter-band__sub">
-              Five financial insights in your inbox every morning. No noise, no spam.
+              {settings.newsletterSubtitle}
             </p>
           </div>
           <Link to="/subscribe" className="footer-newsletter-band__cta">
@@ -69,38 +74,43 @@ function Footer() {
           {/* Brand column */}
           <div className="footer-brand">
             <Link to="/" className="footer-brand__title">
-              The Wall Street Investor
+              {settings.siteTitle}
             </Link>
             <p className="footer-brand__tagline">
-              Quality over quantity. Depth over virality. Every article is chosen
-              because it has something meaningful to offer.
+              {settings.footerBrandText}
             </p>
             <div className="footer-social">
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-social__link"
-                aria-label="Follow us on X (Twitter)"
-              >
-                <TwitterIcon />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-social__link"
-                aria-label="Follow us on LinkedIn"
-              >
-                <LinkedInIcon />
-              </a>
-              <a
-                href="/rss.xml"
-                className="footer-social__link"
-                aria-label="RSS feed"
-              >
-                <RSSIcon />
-              </a>
+              {settings.socialLinks?.twitter && (
+                <a
+                  href={settings.socialLinks.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-social__link"
+                  aria-label="Follow us on X (Twitter)"
+                >
+                  <TwitterIcon />
+                </a>
+              )}
+              {settings.socialLinks?.linkedin && (
+                <a
+                  href={settings.socialLinks.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-social__link"
+                  aria-label="Follow us on LinkedIn"
+                >
+                  <LinkedInIcon />
+                </a>
+              )}
+              {settings.socialLinks?.rss && (
+                <a
+                  href={settings.socialLinks.rss}
+                  className="footer-social__link"
+                  aria-label="RSS feed"
+                >
+                  <RSSIcon />
+                </a>
+              )}
             </div>
           </div>
 
@@ -127,7 +137,7 @@ function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom__inner">
           <p className="footer-bottom__copy">
-            &copy; {currentYear} &nbsp;◆&nbsp; Come Read with Junaid &nbsp;◆&nbsp; All Rights Reserved
+            &copy; {currentYear} &nbsp;◆&nbsp; Come Read with Junaid &nbsp;◆&nbsp; {settings.copyrightText}
           </p>
           <nav className="footer-legal" aria-label="Legal links">
             {LEGAL_LINKS.map((link, i) => (
@@ -147,5 +157,6 @@ function Footer() {
     </footer>
   );
 }
+
 
 export default Footer;

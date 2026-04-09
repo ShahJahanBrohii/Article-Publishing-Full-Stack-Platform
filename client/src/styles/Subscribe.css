@@ -179,3 +179,18 @@
     border-radius: 2px;
   }
 }
+
+@media (max-width: 768px) {
+  .subscribe-hero {
+    padding: 3rem 1rem;
+  }
+
+  .subscribe-content {
+    padding: 2.5rem 1rem 3rem;
+  }
+
+  .subscribe-hero p,
+  .subscribe-copy {
+    font-size: 1rem;
+  }
+}

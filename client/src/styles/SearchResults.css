@@ -509,6 +509,7 @@
   .sr-filter-group__label { margin-bottom: 8px; }
   .sr-filter-btn { display: inline-block; width: auto; }
   .sr-clear-btn { align-self: flex-end; }
+  .sr-page { padding-top: 1.5rem; }
 }
 
 @media (max-width: 640px) {
@@ -521,4 +522,7 @@
   .sr-card__body     { grid-column: 1; grid-row: 1; }
   .sr-card__img      { height: 180px; width: 100%; }
   .sr-results-head { flex-direction: column; gap: 4px; }
+  .sr-suggestions__grid { grid-template-columns: 1fr; }
+  .sr-pagination { gap: 4px; }
+  .sr-page-btn { min-width: 34px; height: 34px; }
 }

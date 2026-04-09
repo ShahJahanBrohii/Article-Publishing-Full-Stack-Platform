@@ -167,3 +167,17 @@
     gap: 0.3rem;
   }
 }
+
+@media (max-width: 768px) {
+  .contact-header h1 {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+  }
+
+  .contact-header p {
+    font-size: 1rem;
+  }
+
+  .contact-form {
+    gap: 1.1rem;
+  }
+}

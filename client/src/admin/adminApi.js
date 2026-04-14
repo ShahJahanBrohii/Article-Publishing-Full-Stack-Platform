@@ -72,16 +72,6 @@ export const updateSettings = (body) =>  req('PUT', '/api/settings', body);
 export const changePassword = (body) => req('PUT', '/api/auth/password', body);
 
 
-// export const getArticles    = (q = '') => req('GET', `/api/articles?${q}`);
-// export const getArticle     = (id)     => req('GET', `/api/articles/${id}`);
+export const getArticles = (q = '') => req('GET', `/api/articles${q ? `?${q}` : ''}`);
 
-
-export const getArticles = ()=>{
-const res = fetch(`${API_URL}/api/general`).then(res => res.json())
-return res
-}
-
-export const getArticle  = (id)=>{
-  const res = fetch(`${API_URL}/api/general/${id}`).then(res => res.json())
-  return res
-}
+export const getArticle = (id) => req('GET', `/api/articles/admin/${id}`);

@@ -17,6 +17,7 @@ const uploadRoutes      = require('./routes/upload');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/come-read-with-junaid';
 
 // ─── Middleware ───────────────────────────────────────────────────────────
 
@@ -31,6 +32,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // ─── Routes ───────────────────────────────────────────────────────────────
 
 app.use('/api/auth',        authRoutes);
+app.use('/api',             publicRoutes);   // /api/subscribe, /api/contact, /api/articles/:id
 app.use('/api/articles',    articleRoutes);
 app.use('/api/general',     generalRoutes);
 app.use('/api/subscribers', subscriberRoutes);
@@ -38,7 +40,6 @@ app.use('/api/messages',    messageRoutes);
 app.use('/api/home',        homeRoutes);
 app.use('/api/settings',    settingsRoutes);
 app.use('/api/upload',      uploadRoutes);
-app.use('/api',             publicRoutes);   // /api/subscribe, /api/contact
 
 // ─── Health check ─────────────────────────────────────────────────────────
 
@@ -58,9 +59,12 @@ app.use((err, _req, res, _next) => {
 // ─── Connect DB then start ────────────────────────────────────────────────
 
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(MONGO_URI)
   .then(async () => {
     console.log('✅ MongoDB connected');
+    if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
+      console.warn('⚠️ MONGO_URI is not set. Using local MongoDB at mongodb://127.0.0.1:27017/come-read-with-junaid');
+    }
     await seedAdmin();
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })

@@ -16,6 +16,17 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /api/articles/admin/:id — admin read for full article data
+router.get('/admin/:id', async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ error: 'Article not found' });
+    res.json(article);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // PUT /api/articles/:id — update
 router.put('/:id', async (req, res) => {
   try {

@@ -234,7 +234,7 @@ export default function ArticleDetail() {
     setHeadings([]);
 
     const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-    fetch(`${apiBase}/api/general/${id}`)
+    fetch(`${apiBase}/api/articles/${id}`)
       .then((r) => {
         if (!r.ok) throw new Error(r.status === 404 ? 'Article not found.' : `Server error ${r.status}`);
         return r.json();

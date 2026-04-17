@@ -214,6 +214,7 @@ function Navbar() {
                   </svg>
                 )}
               </button>
+              <Link to="/admin/login" className="subscribe-btn admin-btn-nav">Admin</Link>
               <Link to="/subscribe" className="subscribe-btn">Subscribe</Link>
             </div>
           </div>
@@ -353,6 +354,9 @@ function Navbar() {
 
           <Link to="/subscribe" className="subscribe-btn mobile-subscribe-btn">
             Subscribe
+          </Link>
+          <Link to="/admin/login" className="subscribe-btn mobile-subscribe-btn admin-btn-nav">
+            Admin
           </Link>
         </div>
       </nav>

@@ -17,12 +17,16 @@ const uploadRoutes      = require('./routes/upload');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/come-read-with-junaid';
+const MONGO_URI = process.env.MONGO_URI ;
 
 // ─── Middleware ───────────────────────────────────────────────────────────
 
+const clientUrl = process.env.CLIENT_URL 
+  ? process.env.CLIENT_URL.replace(/\/$/, "") 
+  : 'http://localhost:5173';
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: clientUrl,
   credentials: true,
 }));
 

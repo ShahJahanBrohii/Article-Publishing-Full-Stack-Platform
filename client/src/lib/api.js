@@ -1,4 +1,6 @@
-const base = () => (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+import { getApiBase } from './apiBase';
+
+const base = () => getApiBase();
 
 async function postJson(path, body) {
   const url = `${base()}${path.startsWith('/') ? path : `/${path}`}`;

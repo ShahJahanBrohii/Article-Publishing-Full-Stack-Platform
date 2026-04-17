@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { getApiBase } from './apiBase';
 
 const SETTINGS_UPDATED_EVENT = 'site-settings-updated';
 const SETTINGS_UPDATED_KEY = 'site-settings-updated-at';
@@ -35,7 +36,7 @@ export function normalizeSiteSettings(data = {}) {
   };
 }
 
-export const getSettingsApiBase = () => (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+export const getSettingsApiBase = () => getApiBase();
 
 export async function fetchSiteSettings() {
   const apiBase = getSettingsApiBase();

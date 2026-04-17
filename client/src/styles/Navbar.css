@@ -173,6 +173,22 @@ nav {
   left: 0;
 }
 
+/* Admin button variant */
+.admin-btn-nav {
+  color: var(--gold-light);
+  background: transparent;
+  border-color: var(--gold-light);
+  margin-left: 0;
+}
+
+.admin-btn-nav::before {
+  background: var(--gold-light);
+}
+
+.admin-btn-nav:hover {
+  color: var(--crimson);
+}
+
 /* ─── MEGA MENU (WSJ-style light dropdown) ─── */
 .mega-menu {
   position: absolute;

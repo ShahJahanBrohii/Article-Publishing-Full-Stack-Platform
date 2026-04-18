@@ -21,12 +21,30 @@ const MONGO_URI = process.env.MONGO_URI ;
 
 // ─── Middleware ───────────────────────────────────────────────────────────
 
-const clientUrl = process.env.CLIENT_URL 
-  ? process.env.CLIENT_URL.replace(/\/$/, "") 
-  : 'http://localhost:5173';
+const normalizeOrigin = (value = '') => String(value).trim().replace(/\/$/, '');
+
+const configuredOrigins = [
+  ...(process.env.CLIENT_URLS || '')
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean),
+  normalizeOrigin(process.env.CLIENT_URL || ''),
+].filter(Boolean);
+
+const allowedOrigins = configuredOrigins.length
+  ? Array.from(new Set(configuredOrigins))
+  : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
 app.use(cors({
-  origin: clientUrl,
+  origin(origin, callback) {
+    // Allow non-browser clients and same-origin requests without Origin header.
+    if (!origin) return callback(null, true);
+    const requestOrigin = normalizeOrigin(origin);
+    if (allowedOrigins.includes(requestOrigin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true,
 }));
 

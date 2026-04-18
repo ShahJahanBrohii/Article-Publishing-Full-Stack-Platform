@@ -82,6 +82,25 @@ Create a `.env` file in `client/` if needed:
 VITE_API_URL=http://localhost:5000
 ```
 
+### Render + Vercel Deployment Notes
+
+For a deployed setup (backend on Render, frontend on Vercel):
+
+- Set frontend env on Vercel:
+
+```env
+VITE_API_URL=https://your-render-service.onrender.com
+```
+
+- Set backend env on Render:
+
+```env
+CLIENT_URL=https://your-vercel-domain.vercel.app
+CLIENT_URLS=https://your-vercel-domain.vercel.app,https://your-custom-domain.com
+```
+
+Use `CLIENT_URLS` when you need multiple allowed origins (for example, Vercel preview + production custom domain).
+
 ## Getting Started
 
 ### 1) Install dependencies

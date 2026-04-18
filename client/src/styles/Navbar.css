@@ -565,7 +565,7 @@ nav {
   .hamburger   { display: flex; }
   .desktop-nav { display: none; }
   /* Hide desktop subscribe — it lives inside the drawer on mobile */
-  .header-actions .subscribe-btn { display: none; }
+  .header-actions .subscribe-btn:not(.admin-btn-nav) { display: none; }
   /* Tighten header padding on small screens */
   .header-inner { padding: 0 1rem; }
   .site-title { font-size: clamp(1rem, 5vw, 1.5rem); }

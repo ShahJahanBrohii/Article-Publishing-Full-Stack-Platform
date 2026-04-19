@@ -40,6 +40,7 @@ function App() {
       {/* ─── ADMIN BRANCH ────────────────────────────────────────────────── */}
       {/* Isolated from public Navbar/Footer. AdminApp handles its own layout. */}
       <Route path="/admin/*" element={<AdminApp />} />
+      
 
       {/* ─── PUBLIC BRANCH ───────────────────────────────────────────────── */}
       <Route

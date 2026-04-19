@@ -2,12 +2,15 @@ const User = require('../models/User');
 
 module.exports = async function seedAdmin() {
   try {
-    const count = await User.countDocuments();
-    if (count > 0) return;
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@wallstreetinvestor.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'changeme123';
+
+    const existingAdmin = await User.findOne({ email: adminEmail.toLowerCase().trim() });
+    if (existingAdmin) return;
 
     await User.create({
-      email:    process.env.ADMIN_EMAIL    || 'admin@wallstreetinvestor.com',
-      password: process.env.ADMIN_PASSWORD || 'changeme123',
+      email:    adminEmail,
+      password: adminPassword,
       role:     'admin',
     });
 

@@ -937,7 +937,6 @@
   }
 
   .admin-sidebar__logo-text,
-  .admin-nav-link__label,
   .admin-sidebar__user,
   .admin-logout-btn span:last-child {
     display: none;
@@ -945,17 +944,26 @@
 
   .admin-sidebar__nav {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 6px;
   }
 
   .admin-nav-link {
-    justify-content: center;
+    justify-content: flex-start;
     padding: 10px 8px;
   }
 
+  .admin-nav-link__label {
+    display: inline;
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .admin-nav-link__icon {
-    width: auto;
+    width: 20px;
   }
 
   .admin-sidebar__foot {

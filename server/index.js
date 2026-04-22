@@ -23,6 +23,15 @@ const MONGO_URI = process.env.MONGO_URI ;
 
 const normalizeOrigin = (value = '') => String(value).trim().replace(/\/$/, '');
 
+const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const wildcardToRegex = (pattern = '') => {
+  const normalized = normalizeOrigin(pattern);
+  if (!normalized.includes('*')) return null;
+  const source = `^${escapeRegex(normalized).replace(/\\\*/g, '.*')}$`;
+  return new RegExp(source, 'i');
+};
+
 const configuredOrigins = [
   ...(process.env.CLIENT_URLS || '')
     .split(',')
@@ -35,18 +44,40 @@ const allowedOrigins = configuredOrigins.length
   ? Array.from(new Set(configuredOrigins))
   : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
-app.use(cors({
+const allowedOriginRegexes = allowedOrigins
+  .map(wildcardToRegex)
+  .filter(Boolean);
+
+const allowVercelPreviews = process.env.ALLOW_VERCEL_PREVIEWS !== 'false';
+
+const isOriginAllowed = (origin) => {
+  const requestOrigin = normalizeOrigin(origin);
+  if (allowedOrigins.includes(requestOrigin)) return true;
+  if (allowedOriginRegexes.some((re) => re.test(requestOrigin))) return true;
+
+  if (allowVercelPreviews) {
+    try {
+      const { hostname } = new URL(requestOrigin);
+      if (hostname.endsWith('.vercel.app')) return true;
+    } catch (_err) {
+      // Ignore malformed origins; they will be treated as blocked.
+    }
+  }
+
+  return false;
+};
+
+const corsOptions = {
   origin(origin, callback) {
     // Allow non-browser clients and same-origin requests without Origin header.
     if (!origin) return callback(null, true);
-    const requestOrigin = normalizeOrigin(origin);
-    if (allowedOrigins.includes(requestOrigin)) {
-      return callback(null, true);
-    }
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
+    return callback(null, isOriginAllowed(origin));
   },
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

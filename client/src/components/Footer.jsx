@@ -27,6 +27,22 @@ function LinkedInIcon() {
   );
 }
 
+function FacebookIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.19 2.23.19v2.46h-1.26c-1.24 0-1.62.77-1.62 1.56V12h2.76l-.44 2.89h-2.32v6.99A10 10 0 0 0 22 12z"/>
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5zm8.98 1.35a1.07 1.07 0 1 1 0 2.14 1.07 1.07 0 0 1 0-2.14zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.8A3.2 3.2 0 1 0 12 15.2a3.2 3.2 0 0 0 0-6.4z"/>
+    </svg>
+  );
+}
+
 function RSSIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -100,6 +116,28 @@ function Footer() {
                   aria-label="Follow us on LinkedIn"
                 >
                   <LinkedInIcon />
+                </a>
+              )}
+              {settings.socialLinks?.facebook && (
+                <a
+                  href={settings.socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-social__link"
+                  aria-label="Follow us on Facebook"
+                >
+                  <FacebookIcon />
+                </a>
+              )}
+              {settings.socialLinks?.instagram && (
+                <a
+                  href={settings.socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-social__link"
+                  aria-label="Follow us on Instagram"
+                >
+                  <InstagramIcon />
                 </a>
               )}
               {settings.socialLinks?.rss && (

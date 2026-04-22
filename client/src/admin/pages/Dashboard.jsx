@@ -53,9 +53,11 @@ export default function Dashboard() {
     <div className="admin-page">
       <div className="admin-page__head">
         <h1 className="admin-page__title">Dashboard</h1>
-        <Link to="/admin/articles/new" className="admin-btn admin-btn--primary">
-          + New Article
-        </Link>
+        <div className="admin-page__head-actions">
+          <Link to="/admin/articles/new" className="admin-btn admin-btn--primary">
+            + New Article
+          </Link>
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -93,7 +95,7 @@ export default function Dashboard() {
           <h2 className="admin-card__title">Recent Articles</h2>
           <Link to="/admin/articles" className="admin-link">View all →</Link>
         </div>
-        <table className="admin-table">
+        <table className="admin-table admin-table--recent">
           <thead>
             <tr>
               <th>Title</th>

@@ -82,7 +82,7 @@ export default function Articles() {
         {loading ? (
           <div className="admin-page-loading">Loading…</div>
         ) : (
-          <table className="admin-table">
+          <table className="admin-table admin-table--articles">
             <thead>
               <tr>
                 <th>Title</th>

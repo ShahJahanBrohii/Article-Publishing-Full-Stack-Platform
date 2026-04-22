@@ -44,9 +44,11 @@ export default function Subscribers() {
           Subscribers
           <span className="admin-page__count">{data.total}</span>
         </h1>
-        <button className="admin-btn admin-btn--primary" onClick={handleExport}>
-          ↓ Export CSV
-        </button>
+        <div className="admin-page__head-actions">
+          <button className="admin-btn admin-btn--primary" onClick={handleExport}>
+            ↓ Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="admin-filters">
@@ -63,7 +65,7 @@ export default function Subscribers() {
         {loading ? (
           <div className="admin-page-loading">Loading…</div>
         ) : (
-          <table className="admin-table">
+          <table className="admin-table admin-table--subscribers">
             <thead>
               <tr>
                 <th>Email</th>

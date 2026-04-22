@@ -1053,6 +1053,27 @@
     min-width: 160px;
   }
 
+  .admin-table--subscribers {
+    min-width: 100%;
+  }
+
+  .admin-table--subscribers th:nth-child(2),
+  .admin-table--subscribers td:nth-child(2),
+  .admin-table--subscribers th:nth-child(4),
+  .admin-table--subscribers td:nth-child(4) {
+    display: none;
+  }
+
+  .admin-table--subscribers .admin-table__primary {
+    max-width: 170px;
+  }
+
+  .admin-table--subscribers td:last-child,
+  .admin-table--subscribers th:last-child {
+    min-width: 92px;
+    text-align: right;
+  }
+
   .admin-table th:last-child,
   .admin-table td:last-child {
     position: sticky;

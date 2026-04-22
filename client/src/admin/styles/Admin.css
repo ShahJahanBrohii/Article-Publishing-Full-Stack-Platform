@@ -897,14 +897,7 @@
     overflow-x: auto;
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .admin-table thead,
-  .admin-table tbody,
-  .admin-table tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
+    min-width: 760px;
   }
 
   .admin-table__primary {
@@ -1022,5 +1015,18 @@
 
   .admin-table__actions {
     min-width: 220px;
+  }
+
+  .admin-table th:last-child,
+  .admin-table td:last-child {
+    position: sticky;
+    right: 0;
+    background: var(--adm-surface);
+    z-index: 1;
+    box-shadow: -8px 0 10px -10px rgba(0, 0, 0, 0.45);
+  }
+
+  .admin-table thead th:last-child {
+    z-index: 2;
   }
 }

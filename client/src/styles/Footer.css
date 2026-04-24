@@ -5,7 +5,7 @@
 .site-footer {
   background: var(--crimson);
   border-top: 1px solid var(--gold-dim);
-  color: var(--parchment);
+  color: #fff;
   margin-top: auto;
 }
 
@@ -39,7 +39,7 @@
 .footer-newsletter-band__sub {
   font-family: var(--font-body, Georgia, serif);
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #fff;
   line-height: 1.5;
 }
 
@@ -100,7 +100,7 @@
   font-family: var(--font-body, Georgia, serif);
   font-size: 0.85rem;
   font-style: italic;
-  color: rgba(255, 255, 255, 0.5);
+  color: #fff;
   line-height: 1.65;
 }
 
@@ -138,7 +138,7 @@
 
 .footer-nav-col__heading {
   font-family: 'Cinzel', serif;
-  font-size: 0.58rem;
+  font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -161,8 +161,8 @@ a.footer-nav-col__heading:hover { color: var(--gold); }
 
 .footer-nav-col__link {
   font-family: var(--font-body, Georgia, serif);
-  font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.8rem;
+  color: #fff;
   text-decoration: none;
   transition: color 0.18s ease, padding-left 0.18s ease;
   position: relative;
@@ -182,16 +182,17 @@ a.footer-nav-col__heading:hover { color: var(--gold); }
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
 }
 
 .footer-bottom__copy {
   font-family: var(--font-body, Georgia, serif);
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: #fff;
   letter-spacing: 0.04em;
 }
 
@@ -201,19 +202,20 @@ a.footer-nav-col__heading:hover { color: var(--gold); }
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .footer-legal__link {
   font-family: var(--font-body, Georgia, serif);
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: #fff;
   text-decoration: none;
   transition: color 0.18s;
 }
 .footer-legal__link:hover { color: var(--gold-dim); }
 
 .footer-legal__sep {
-  color: rgba(255, 255, 255, 0.2);
+  color: #fff;
   font-size: 0.7rem;
 }
 
@@ -270,8 +272,7 @@ a.footer-nav-col__heading:hover { color: var(--gold); }
 
 @media (max-width: 480px) {
   .footer-bottom__inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
   }
 }

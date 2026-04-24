@@ -85,6 +85,9 @@ const NAV_SECTIONS = [
 function Navbar() {
   const { settings } = useSiteSettings();
 
+  const openMenuTimerRef = useRef(null);
+  const closeMenuTimerRef = useRef(null);
+
   // ── Desktop hover mega-menu ──────────────────────────────────────────────
   const [activeMenu,   setActiveMenu]   = useState(null);
 
@@ -133,8 +136,44 @@ function Navbar() {
   }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
-  const handleMouseEnter = (menu) => setActiveMenu(menu);
-  const handleMouseLeave = () => setActiveMenu(null);
+  const clearHoverTimers = useCallback(() => {
+    if (openMenuTimerRef.current) {
+      clearTimeout(openMenuTimerRef.current);
+      openMenuTimerRef.current = null;
+    }
+    if (closeMenuTimerRef.current) {
+      clearTimeout(closeMenuTimerRef.current);
+      closeMenuTimerRef.current = null;
+    }
+  }, []);
+
+  const handleMouseEnter = useCallback((menu) => {
+    if (closeMenuTimerRef.current) {
+      clearTimeout(closeMenuTimerRef.current);
+      closeMenuTimerRef.current = null;
+    }
+
+    openMenuTimerRef.current = setTimeout(() => {
+      setActiveMenu(menu);
+      openMenuTimerRef.current = null;
+    }, 110);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (openMenuTimerRef.current) {
+      clearTimeout(openMenuTimerRef.current);
+      openMenuTimerRef.current = null;
+    }
+
+    closeMenuTimerRef.current = setTimeout(() => {
+      setActiveMenu(null);
+      closeMenuTimerRef.current = null;
+    }, 160);
+  }, []);
+
+  useEffect(() => {
+    return () => clearHoverTimers();
+  }, [clearHoverTimers]);
 
   const toggleDrawer = () => {
     setDrawerOpen((o) => !o);
@@ -166,18 +205,28 @@ function Navbar() {
         <div className="header-inner">
 
           <div className="header-top-row">
-            {/* Hamburger — mobile only */}
-            <button
-              className="hamburger"
-              onClick={toggleDrawer}
-              aria-label={drawerOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={drawerOpen}
-              aria-controls="mobile-drawer"
-            >
-              <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
-              <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
-              <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
-            </button>
+            <div className="header-left-actions">
+              {/* Hamburger — mobile only */}
+              <button
+                className="hamburger"
+                onClick={toggleDrawer}
+                aria-label={drawerOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={drawerOpen}
+                aria-controls="mobile-drawer"
+              >
+                <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
+                <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
+                <span className={`hamburger__bar ${drawerOpen ? 'hamburger__bar--open' : ''}`} />
+              </button>
+
+              <Link to="/subscribe" className="subscribe-btn subscribe-btn--top">
+                <svg className="subscribe-btn__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <rect x="1.5" y="2.25" width="15" height="13.5" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M2.5 4.25L9 9.25L15.5 4.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="subscribe-btn__label">Subscribe</span>
+              </Link>
+            </div>
 
             <Link to="/" className="site-title-link">
               <div className="site-brand">
@@ -200,22 +249,22 @@ function Navbar() {
                 aria-label={searchOpen ? 'Close search' : 'Open search'}
                 aria-expanded={searchOpen}
               >
+                <span className="search-toggle__label">{searchOpen ? 'Close' : 'Explore'}</span>
                 {searchOpen ? (
                   // × close icon
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <svg className="search-toggle__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                     <line x1="2" y1="2" x2="16" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
                     <line x1="16" y1="2" x2="2" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
                   </svg>
                 ) : (
                   // magnifier icon
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <svg className="search-toggle__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                     <circle cx="7.5" cy="7.5" r="5" stroke="currentColor" strokeWidth="1.8"/>
                     <line x1="11.5" y1="11.5" x2="16" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
                   </svg>
                 )}
               </button>
               <Link to="/admin/login" className="subscribe-btn admin-btn-nav">Admin</Link>
-              <Link to="/subscribe" className="subscribe-btn">Subscribe</Link>
             </div>
           </div>
 

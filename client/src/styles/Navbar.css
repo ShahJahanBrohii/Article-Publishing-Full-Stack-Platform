@@ -3,41 +3,48 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: var(--crimson);
-  border-bottom: 1px solid var(--gold-dim);
+  background: #ffffff;
+  border-top: 15px solid var(--crimson);
+  border-bottom: none;
   box-shadow: 0 4px 40px rgba(0,0,0,0.6);
   overflow: visible;
+  backdrop-filter: saturate(110%) blur(3px);
 }
 
-/* subtle texture overlay */
+/* remove textured overlay to keep the header background clean white */
 header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.06) 2px,
-      rgba(0,0,0,0.06) 4px
-    );
-  pointer-events: none;
+  content: none;
 }
 
 .header-inner {
   max-width: 1300px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0.35rem 2rem 0.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
 }
 
+.header-top-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+.header-left-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  justify-self: start;
+}
+
 
 
 .site-title-link {
+  justify-self: center;
   text-decoration: none;
 }
 
@@ -62,15 +69,18 @@ header::before {
   font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: none;
-  color: var(--gold-light);
-  text-shadow: 0 0 30px rgba(201,168,76,0.35), 0 2px 4px rgba(0,0,0,0.5);
+  color: var(--crimson);
+  text-shadow: none;
   padding: 0;
   text-align: center;
   position: relative;
-  transition: letter-spacing 0.4s ease;
+  transition: letter-spacing 0.32s ease;
   cursor: pointer;
 }
-.site-title:hover { letter-spacing: 0.25em; }
+.site-title:hover {
+  letter-spacing: 0.18em;
+  text-shadow: none;
+}
 
 
 
@@ -81,6 +91,23 @@ nav {
   position: relative;
   margin-bottom: 0.4rem;
   position: static;
+}
+
+.desktop-nav {
+  position: relative;
+  padding-bottom: 0.9rem;
+}
+
+.desktop-nav::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8px;
+  border-top: 1px solid var(--crimson);
+  border-bottom: 1px solid var(--crimson);
+  pointer-events: none;
 }
 
 .nav-item {
@@ -94,11 +121,12 @@ nav {
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--parchment);
+  color: var(--crimson);
   text-decoration: none;
-  padding: 0.45rem 1.5rem;
+  padding: 0.55rem 1.35rem;
   position: relative;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, background-color 0.25s ease;
+  border-radius: 3px;
 }
 
 .nav-link::before {
@@ -112,7 +140,8 @@ nav {
 
 .nav-item:hover .nav-link,
 .nav-link:hover {
-  color: var(--gold-light);
+  color: var(--crimson);
+  background: rgba(92, 19, 19, 0.05);
 }
 
 .nav-item:hover .nav-link::before {
@@ -138,19 +167,37 @@ nav {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--crimson);
-  background: var(--gold-light);
-  border: 1px solid var(--gold-light);
+  color: #ffffff;
+  background: var(--crimson);
+  border: 1px solid var(--crimson);
   padding: 0.5rem 1.2rem;
   margin-left: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, color 0.3s ease, border-color 0.3s ease;
   position: relative;
   overflow: hidden;
   text-decoration: none;
   display: inline-block;
   text-align: center;
   vertical-align: middle;
+  border-radius: 3px;
+}
+
+.subscribe-btn--top {
+  margin-left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subscribe-btn__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.subscribe-btn__label {
+  line-height: 1;
 }
 
 .subscribe-btn::before {
@@ -160,13 +207,14 @@ nav {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: var(--gold);
+  background: #5b1111;
   transition: left 0.3s ease;
   z-index: -1;
 }
 
 .subscribe-btn:hover {
-  color: var(--cream);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .subscribe-btn:hover::before {
@@ -175,18 +223,7 @@ nav {
 
 /* Admin button variant */
 .admin-btn-nav {
-  color: var(--gold-light);
-  background: transparent;
-  border-color: var(--gold-light);
   margin-left: 0;
-}
-
-.admin-btn-nav::before {
-  background: var(--gold-light);
-}
-
-.admin-btn-nav:hover {
-  color: var(--crimson);
 }
 
 /* ─── MEGA MENU (WSJ-style light dropdown) ─── */
@@ -197,7 +234,7 @@ nav {
   min-width: 500px;
   background: var(--color-white, #fff);
   border: 1px solid var(--color-border, #e5e5e5);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.16);
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -302,15 +339,21 @@ nav {
    HEADER LAYOUT — top row (hamburger · logo · actions)
    ───────────────────────────────────────────────────────────────────────── */
 .header-top-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
   gap: 1rem;
-  flex-wrap: wrap;
+}
+
+.site-title-link {
+  grid-column: 2;
+  justify-self: center;
 }
 
 .header-actions {
+  grid-column: 3;
+  justify-self: end;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -318,6 +361,8 @@ nav {
 
 /* ─── Hamburger button — mobile only ─────────────────────────────────── */
 .hamburger {
+  grid-column: 1;
+  justify-self: start;
   display: none;
   flex-direction: column;
   justify-content: center;
@@ -351,17 +396,35 @@ nav {
 .search-toggle {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  background: none;
-  border: none;
+  justify-content: space-between;
+  gap: 0.85rem;
+  min-width: 10.5rem;
+  padding: 0.68rem 1rem 0.68rem 1.15rem;
+  background: #fff;
+  border: 1.5px solid #111;
   cursor: pointer;
-  color: var(--gold-light);
-  border-radius: 50%;
-  transition: background 0.15s;
+  color: #111;
+  border-radius: 999px;
+  transition: background 0.15s, transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 5px 12px rgba(17, 11, 11, 0.05);
 }
-.search-toggle:hover { background: rgba(255,255,255,0.1); }
+
+.search-toggle__label {
+  font-family: var(--font-ui, 'Inter', sans-serif);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.search-toggle__icon {
+  flex-shrink: 0;
+}
+.search-toggle:hover {
+  background: #f8f8f6;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(17, 11, 11, 0.08);
+}
 
 /* ─── Search bar (desktop — slides in below nav) ─────────────────────── */
 .search-bar {
@@ -382,7 +445,7 @@ nav {
   max-width: 560px;
   margin: 0 auto;
   border: 1px solid var(--gold-dim);
-  border-radius: 4px;
+  border-radius: 999px;
   padding: 0 12px;
   background: rgba(255,255,255,0.08);
 }
@@ -440,7 +503,7 @@ nav {
   top: 0;
   left: 0;
   height: 100dvh;
-  width: min(300px, 85vw);
+  width: min(340px, 88vw);
   background: var(--crimson);
   border-right: 1px solid var(--gold-dim);
   z-index: 201;
@@ -570,7 +633,14 @@ nav {
   .header-inner { padding: 0 1rem; }
   .site-title { font-size: clamp(1rem, 5vw, 1.5rem); }
   .header-actions { gap: 8px; }
-  .search-toggle { width: 32px; height: 32px; }
+  .search-toggle {
+    min-width: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+  .search-toggle__label { display: none; }
 }
 
 @media (min-width: 901px) {
@@ -588,5 +658,4 @@ nav {
   .nav-link   { padding: 0.4rem 0.9rem; font-size: 0.58rem; }
   .mega-menu  { min-width: 280px; }
   .mega-col   { padding: 0 0.5rem; }
-  .header-actions { width: 100%; justify-content: flex-end; }
 }

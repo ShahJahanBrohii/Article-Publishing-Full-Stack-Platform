@@ -174,9 +174,6 @@ function Footer() {
       {/* ── Bottom bar ───────────────────────────────────────────────── */}
       <div className="footer-bottom">
         <div className="footer-bottom__inner">
-          <p className="footer-bottom__copy">
-            &copy; {currentYear} &nbsp;◆&nbsp; Come Read with Junaid &nbsp;◆&nbsp; {settings.copyrightText}
-          </p>
           <nav className="footer-legal" aria-label="Legal links">
             {LEGAL_LINKS.map((link, i) => (
               <React.Fragment key={link.to}>
@@ -189,6 +186,9 @@ function Footer() {
               </React.Fragment>
             ))}
           </nav>
+          <p className="footer-bottom__copy">
+            &copy; {currentYear} &nbsp;◆&nbsp; Come Read with Junaid &nbsp;◆&nbsp; {settings.copyrightText}
+          </p>
         </div>
       </div>
 

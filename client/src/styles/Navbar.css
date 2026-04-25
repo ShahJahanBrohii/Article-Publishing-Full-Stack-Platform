@@ -78,10 +78,6 @@ header::before {
   transition: letter-spacing 0.32s ease;
   cursor: pointer;
 }
-.site-title:hover {
-  letter-spacing: 0.18em;
-  text-shadow: none;
-}
 
 
 

@@ -16,7 +16,12 @@ This repository includes:
 
 ### Public (User) Features
 
-- Responsive public layout (navbar, footer, content pages, article detail, search).
+- Fully responsive public layout across key breakpoints (desktop, tablet, and compact mobile).
+- Consistent typography and spacing system across all public pages.
+- Mobile-optimized header behavior:
+  - clean top row on small screens
+  - drawer-first navigation for section links
+  - mobile-safe search/brand controls with no overlap
 - Homepage with configurable hero/sidebar/opinion/most-read blocks.
 - Hybrid home feeds: admin-pinned entries with automatic published-article fallback where applicable.
 - Article detail page with:
@@ -28,6 +33,7 @@ This repository includes:
 - Search page with query/tag/section/sort/pagination support.
 - Tag-click routing from article and search cards into filtered search results.
 - Legal pages and footer labels/content loaded from site settings.
+- Footer system aligned to the current design language with responsive column collapse and mobile-safe legal/newsletter layout.
 
 ### Admin Features
 
@@ -42,6 +48,46 @@ This repository includes:
   - About page structured fields
   - generated About HTML fallback content
 - Subscriber and message management.
+- Responsive admin shell and editor behavior (tables, cards, forms, and editor panels tuned for smaller screens).
+
+### Responsive Consistency Pass (Implemented)
+
+- Project-wide stylesheet normalization for responsive behavior.
+- Device-matrix tuning applied for common widths (including compact phones).
+- Shared layout safeguards to reduce horizontal overflow risks.
+- Font-size/line-height consistency improvements for better readability on small screens.
+
+## Screenshots
+
+Use this section to document the latest UI snapshots.
+
+### Public Experience
+
+- Desktop: homepage hero + featured grid
+- Tablet: section page and search results layout
+- Mobile: header, drawer navigation, article detail, and footer
+
+### Admin Experience
+
+- Login screen
+- Dashboard overview cards
+- Article editor (TipTap toolbar + content area)
+- Settings editor and content management screens
+
+Note: Replace these bullets with actual image embeds when you finalize visual QA.
+
+## Admin Workflow (Quick Guide)
+
+1. Sign in from the admin login page using seeded or configured admin credentials.
+2. Open Dashboard to review headline metrics, recent activity, and pending items.
+3. Create or edit articles from Articles:
+  - write content in the TipTap editor
+  - upload/assign featured image
+  - save draft or publish
+4. Manage homepage blocks from Home Content (hero, sidebar, opinion, most-read).
+5. Update global site copy and labels from Settings (branding, footer, newsletter, legal, about).
+6. Review incoming subscribers and contact messages from Subscribers and Messages.
+7. Verify public pages (home, article detail, search, legal/footer) after major content changes.
 
 ## Tech Stack
 
@@ -100,6 +146,14 @@ CLIENT_URLS=https://your-vercel-domain.vercel.app,https://your-custom-domain.com
 ```
 
 Use `CLIENT_URLS` when you need multiple allowed origins (for example, Vercel preview + production custom domain).
+
+Optional backend env:
+
+```env
+ALLOW_VERCEL_PREVIEWS=true
+```
+
+Set this to `false` if you want to disable automatic allowance of `*.vercel.app` preview domains.
 
 ## Getting Started
 
@@ -177,6 +231,7 @@ Main route groups:
 - `/api/subscribers` - subscriber admin routes
 - `/api/messages` - message admin routes
 - `/api/subscribe` and `/api/contact` - public form submissions
+- `/api/health` - health check endpoint
 
 ## Notes and Current Limitations
 

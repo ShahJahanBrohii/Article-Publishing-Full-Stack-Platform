@@ -28,7 +28,7 @@ header::before {
 
 .header-top-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   width: 100%;
   gap: 1rem;
@@ -39,6 +39,7 @@ header::before {
   align-items: center;
   gap: 0.85rem;
   justify-self: start;
+  min-width: 0;
 }
 
 
@@ -231,7 +232,9 @@ nav {
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 500px;
+  width: min(680px, calc(100vw - 2rem));
+  min-width: min(500px, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
   background: var(--color-white, #fff);
   border: 1px solid var(--color-border, #e5e5e5);
   box-shadow: 0 18px 40px rgba(0,0,0,0.16);
@@ -357,6 +360,30 @@ nav {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .header-inner {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .desktop-nav {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-link {
+    padding: 0.52rem 1rem;
+    letter-spacing: 0.17em;
+  }
+
+  .mega-menu {
+    min-width: min(420px, calc(100vw - 1.5rem));
+  }
 }
 
 /* ─── Hamburger button — mobile only ─────────────────────────────────── */
@@ -627,8 +654,35 @@ nav {
 @media (max-width: 900px) {
   .hamburger   { display: flex; }
   .desktop-nav { display: none; }
-  /* Hide desktop subscribe — it lives inside the drawer on mobile */
-  .header-actions .subscribe-btn:not(.admin-btn-nav) { display: none; }
+  .header-top-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.55rem;
+  }
+
+  /* Hide top-row subscribe/admin — they live inside the mobile drawer */
+  .header-left-actions .subscribe-btn--top,
+  .header-actions .admin-btn-nav {
+    display: none;
+  }
+
+  .site-title-link {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .site-brand {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .site-title {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.04em;
+  }
+
   /* Tighten header padding on small screens */
   .header-inner { padding: 0 1rem; }
   .site-title { font-size: clamp(1rem, 5vw, 1.5rem); }
@@ -655,7 +709,33 @@ nav {
   .header-inner { padding: 0 0.75rem; }
   .site-brand { gap: 0.2rem; }
   .site-brand__logo { height: 28px; max-width: 180px; }
+  .site-title { font-size: clamp(0.9rem, 4.6vw, 1.12rem); }
   .nav-link   { padding: 0.4rem 0.9rem; font-size: 0.58rem; }
   .mega-menu  { min-width: 280px; }
   .mega-col   { padding: 0 0.5rem; }
+}
+
+@media (max-width: 390px) {
+  .header-inner {
+    padding: 0 0.6rem;
+  }
+
+  .site-title {
+    font-size: 0.96rem;
+    letter-spacing: 0.05em;
+  }
+
+  .site-brand__logo {
+    max-width: 160px;
+  }
+
+  .search-toggle,
+  .hamburger {
+    width: 34px;
+    height: 34px;
+  }
+
+  .mobile-drawer {
+    width: min(320px, 92vw);
+  }
 }

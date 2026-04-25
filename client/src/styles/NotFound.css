@@ -52,3 +52,13 @@
     max-width: 24rem;
   }
 }
+
+@media (max-width: 390px) {
+  .not-found {
+    padding: 2.4rem 0.85rem;
+  }
+
+  .not-found__text {
+    font-size: 0.95rem;
+  }
+}

@@ -39,6 +39,12 @@
 
 html { scroll-behavior: smooth; }
 
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   font-family: var(--font-body);
   background:
@@ -49,6 +55,26 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   line-height: 1.55;
+}
+
+img,
+picture,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+textarea,
+select,
+button {
+  max-width: 100%;
+}
+
+:where(.app, .public-content, main, section, article, aside) {
+  min-width: 0;
 }
 
 ::selection {
@@ -80,7 +106,7 @@ textarea:focus-visible {
 }
 
 /* Same crimson bar treatment as header (Navbar.css) */
-footer {
+footer:not(.site-footer) {
   position: relative;
   background: var(--crimson);
   border-top: 1px solid var(--gold-dim);
@@ -105,7 +131,7 @@ footer {
   }
 }
 
-footer::before {
+footer:not(.site-footer)::before {
   content: '';
   position: absolute;
   inset: 0;

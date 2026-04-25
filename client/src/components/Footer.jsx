@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useSiteSettings } from '../lib/siteSettings';
+import { SECTIONS } from '../data/sections';
 import '../styles/Footer.css';
 
 
@@ -8,6 +9,36 @@ const COMPANY_LINKS = [
   { label: 'About',   to: '/about'   },
   { label: 'Contact', to: '/contact' },
   { label: 'Subscribe', to: '/subscribe' },
+];
+
+const EXPLORE_COLUMNS = [
+  {
+    heading: 'Investing',
+    sectionId: 'investing',
+    items: SECTIONS.investing.topics,
+  },
+  {
+    heading: 'Personal Finance',
+    sectionId: 'personal-finance',
+    items: SECTIONS['personal-finance'].topics,
+  },
+  {
+    heading: 'Financial Education',
+    sectionId: 'financial-education',
+    items: SECTIONS['financial-education'].topics,
+  },
+  {
+    heading: 'Guides',
+    sectionId: 'guides',
+    items: SECTIONS.guides.topics,
+  },
+  {
+    heading: 'More',
+    sectionId: 'investing',
+    items: [
+      ...SECTIONS.investing.topics,
+    ],
+  },
 ];
 
 // Simple SVG social icons — no external icon library needed
@@ -51,6 +82,15 @@ function RSSIcon() {
   );
 }
 
+function MailIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 6h16v12H4z" />
+      <path d="m4 7 8 6 8-6" />
+    </svg>
+  );
+}
+
 function Footer() {
   const { settings, loading } = useSiteSettings();
   const currentYear = new Date().getFullYear();
@@ -78,7 +118,8 @@ function Footer() {
             </p>
           </div>
           <Link to="/subscribe" className="footer-newsletter-band__cta">
-            Subscribe Free →
+            <span>Subscribe</span>
+            <MailIcon />
           </Link>
         </div>
       </div>
@@ -86,15 +127,18 @@ function Footer() {
       {/* ── Main footer body ─────────────────────────────────────────── */}
       <div className="footer-body">
         <div className="footer-body__inner">
+          <section className="footer-company" aria-label="Company links and social profiles">
+            <h2 className="footer-section-heading">Company</h2>
+            <ul className="footer-company__links">
+              {COMPANY_LINKS.map((link) => (
+                <li key={link.to}>
+                  <Link to={link.to} className="footer-company__link">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
 
-          {/* Brand column */}
-          <div className="footer-brand">
-            <Link to="/" className="footer-brand__title">
-              {settings.siteTitle}
-            </Link>
-            <p className="footer-brand__tagline">
-              {settings.footerBrandText}
-            </p>
             <div className="footer-social">
               {settings.socialLinks?.twitter && (
                 <a
@@ -150,23 +194,30 @@ function Footer() {
                 </a>
               )}
             </div>
-          </div>
+          </section>
 
-        
-
-          {/* Company column */}
-          <nav className="footer-nav-col" aria-label="Company links">
-            <span className="footer-nav-col__heading">Company</span>
-            <ul className="footer-nav-col__list">
-              {COMPANY_LINKS.map((link) => (
-                <li key={link.to}>
-                  <Link to={link.to} className="footer-nav-col__link">
-                    {link.label}
-                  </Link>
-                </li>
+          <section className="footer-explore" aria-label="Explore topics">
+            <h2 className="footer-section-heading">Explore</h2>
+            <div className="footer-explore__grid">
+              {EXPLORE_COLUMNS.map((column) => (
+                <div key={column.heading} className="footer-explore__column">
+                  <h3 className="footer-explore__heading">{column.heading}</h3>
+                  <ul className="footer-explore__list">
+                    {column.items.map((item) => (
+                      <li key={`${column.heading}-${item.slug}`}>
+                        <Link
+                          to={`/${column.sectionId}/${item.slug}`}
+                          className="footer-explore__link"
+                        >
+                          {item.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
-          </nav>
+            </div>
+          </section>
 
         </div>
       </div>
@@ -187,7 +238,7 @@ function Footer() {
             ))}
           </nav>
           <p className="footer-bottom__copy">
-            &copy; {currentYear} &nbsp;◆&nbsp; Come Read with Junaid &nbsp;◆&nbsp; {settings.copyrightText}
+            {currentYear}. {settings.copyrightText}
           </p>
         </div>
       </div>

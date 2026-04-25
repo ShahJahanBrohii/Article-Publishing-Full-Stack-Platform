@@ -166,6 +166,16 @@
   text-decoration: underline;
 }
 
+@media (max-width: 1024px) {
+  .subscribe-hero {
+    padding: 3.5rem 1.5rem;
+  }
+
+  .subscribe-content {
+    padding: 2.75rem 1.25rem 3.5rem;
+  }
+}
+
 @media (max-width: 520px) {
   .subscribe-row {
     flex-direction: column;
@@ -192,5 +202,19 @@
   .subscribe-hero p,
   .subscribe-copy {
     font-size: 1rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .subscribe-hero {
+    padding: 2.4rem 0.85rem;
+  }
+
+  .subscribe-content {
+    padding: 2.1rem 0.85rem 2.5rem;
+  }
+
+  .subscribe-submit {
+    width: 100%;
   }
 }

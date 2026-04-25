@@ -941,3 +941,37 @@
   .comment-input { min-height: 90px; }
   .submit-comment-btn { width: 100%; }
 }
+
+@media (max-width: 390px) {
+  .article-detail-wrapper {
+    padding: 0.85rem 0.5rem;
+    gap: 1rem;
+  }
+
+  .article-topic,
+  .article-meta-enhanced,
+  .article-breadcrumb a,
+  .article-breadcrumb span:last-child {
+    font-size: 0.6rem;
+  }
+
+  .article-title-main {
+    font-size: 1.4rem;
+  }
+
+  .article-content {
+    font-size: 0.95rem;
+    line-height: 1.68;
+  }
+
+  .share-btn,
+  .submit-comment-btn,
+  .save-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .related-article-img {
+    height: 170px;
+  }
+}

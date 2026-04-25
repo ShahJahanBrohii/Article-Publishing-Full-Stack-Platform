@@ -154,17 +154,13 @@
   border-color: var(--color-red);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1024px) {
   .contact-header {
-    padding: 3rem 1rem;
+    padding: 4.25rem 1.5rem;
   }
 
   .contact-content {
-    padding: 2.5rem 1rem;
-  }
-
-  .form-group {
-    gap: 0.3rem;
+    padding: 3.25rem 1.5rem;
   }
 }
 
@@ -179,5 +175,33 @@
 
   .contact-form {
     gap: 1.1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .contact-header {
+    padding: 3rem 1rem;
+  }
+
+  .contact-content {
+    padding: 2.5rem 1rem;
+  }
+
+  .form-group {
+    gap: 0.3rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .contact-header {
+    padding: 2.5rem 0.85rem;
+  }
+
+  .contact-content {
+    padding: 2.15rem 0.85rem;
+  }
+
+  .submit-button {
+    width: 100%;
   }
 }

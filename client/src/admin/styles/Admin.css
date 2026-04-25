@@ -897,7 +897,8 @@
     overflow-x: auto;
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
-    min-width: 760px;
+    min-width: 100%;
+    max-width: 100%;
   }
 
   .admin-table__primary {
@@ -912,6 +913,26 @@
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 22px 16px;
+  }
+
+  .admin-page__title {
+    font-size: 22px;
+  }
+
+  .admin-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
 
@@ -972,6 +993,21 @@
   .admin-page { padding: 20px 14px; }
   .admin-stat-grid { grid-template-columns: repeat(2, 1fr); }
   .admin-two-col { grid-template-columns: 1fr; }
+
+  .admin-page__head {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .admin-page__head-actions {
+    width: 100%;
+  }
+
+  .admin-page__head-actions .admin-btn,
+  .admin-page__head-actions .admin-input,
+  .admin-page__head-actions .admin-select {
+    width: 100%;
+  }
 
   .admin-tabs {
     gap: 6px;
@@ -1085,5 +1121,25 @@
 
   .admin-table thead th:last-child {
     z-index: 2;
+  }
+}
+
+@media (max-width: 390px) {
+  .admin-page {
+    padding: 18px 10px;
+  }
+
+  .admin-page__title {
+    font-size: 20px;
+  }
+
+  .admin-card__head {
+    padding: 12px 14px;
+  }
+
+  .admin-btn,
+  .admin-input,
+  .admin-select {
+    width: 100%;
   }
 }

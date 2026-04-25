@@ -5,8 +5,8 @@ header {
   z-index: 1000;
   background: #ffffff;
   border-top: 15px solid var(--crimson);
-  border-bottom: none;
-  box-shadow: 0 4px 40px rgba(0,0,0,0.6);
+  /* border-bottom: none; */
+  /* box-shadow: 0 4px 40px rgba(0,0,0,0.6); */
   overflow: visible;
   backdrop-filter: saturate(110%) blur(3px);
 }
@@ -78,8 +78,6 @@ header::before {
   transition: letter-spacing 0.32s ease;
   cursor: pointer;
 }
-
-
 
 /* ─── NAV ─── */
 nav {

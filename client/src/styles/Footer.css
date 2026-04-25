@@ -211,7 +211,7 @@
 
 /* Bottom maroon strip */
 .footer-bottom {
-  background: #450507;
+  background: var(--crimson);
   padding: 20px 0 22px;
 }
 
@@ -405,7 +405,7 @@
 
   .footer-accordion {
     display: block;
-    background: #450507;
+    background: var(--crimson);
     border-radius: 4px;
     overflow: hidden;
   }
@@ -419,34 +419,35 @@
     border-bottom: none;
   }
 
-  /* Trigger row */
+  /* Trigger row — mirrors .mobile-nav-link + .mobile-expand-btn from Navbar */
   .footer-accordion__trigger {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 20px;
+    padding: 11px 20px;
     background: transparent;
     border: none;
     cursor: pointer;
     text-align: left;
-    font-family: var(--font-ui, 'Inter', Arial, sans-serif);
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #c9a84c; /* gold — matches site's gold-light variable */
-    transition: background 0.15s ease;
+    color: var(--parchment);
+    transition: color 0.15s, background 0.15s;
   }
 
   .footer-accordion__trigger:hover {
-    background: rgba(255, 255, 255, 0.05);
+    color: var(--gold-light);
+    background: rgba(255, 255, 255, 0.06);
   }
 
-  /* Chevron icon */
+  /* Chevron icon — mirrors .mobile-expand-btn color */
   .footer-accordion__chevron {
     flex-shrink: 0;
-    color: #c9a84c;
+    color: var(--gold-dim);
     transition: transform 0.28s ease;
   }
 
@@ -477,15 +478,15 @@
 
   .footer-accordion__link {
     display: block;
-    padding: 9px 0;
-    color: #ffffff;
+    padding: 7px 16px;
+    color: rgba(255, 255, 255, 0.6);
     text-decoration: none;
-    font-family: var(--font-ui, 'Inter', Arial, sans-serif);
-    font-size: 0.95rem;
+    font-family: var(--font-body, Georgia, serif);
+    font-size: 0.88rem;
     font-weight: 400;
     line-height: 1.4;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    transition: color 0.15s ease, padding-left 0.15s ease;
+    border-radius: 3px;
+    transition: color 0.12s, background 0.12s;
   }
 
   .footer-accordion__list li:last-child .footer-accordion__link {
@@ -493,8 +494,8 @@
   }
 
   .footer-accordion__link:hover {
-    color: #c9a84c;
-    padding-left: 6px;
+    color: var(--gold-light);
+    background: rgba(255, 255, 255, 0.06);
   }
 
   /* Legal */
@@ -534,16 +535,17 @@
   }
 
   .footer-accordion__trigger {
-    padding: 16px 16px;
-    font-size: 0.78rem;
+    padding: 10px 14px;
+    font-size: 0.62rem;
   }
 
   .footer-accordion__list {
-    padding: 0 16px 16px;
+    padding: 0 14px 14px;
   }
 
   .footer-accordion__link {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    padding: 6px 12px;
   }
 
   .footer-bottom {
